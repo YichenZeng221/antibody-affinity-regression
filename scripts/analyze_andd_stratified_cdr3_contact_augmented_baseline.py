@@ -1,19 +1,19 @@
 """Post-hoc CDR3 contact feature augmentation on ANDD stratified subsets.
 
-中文说明：
-这个实验不训练深度模型。它保留已有 sequence prediction，并仅在 contact-covered
-train subset 上用 Ridge 学习：
+:
+ sequence prediction, contact-covered
+train subset  Ridge :
 
     residual = target - sequence_prediction
 
-然后将预测 residual 加回 test sequence prediction，检查少量真实 CDR3 界面几何
-特征是否能减少 tail compression。
+ residual  test sequence prediction, CDR3 
+ tail compression
 
-重要限制：
-- 不修改 dataset，不覆盖任何既有 predictions/checkpoints/reports。
-- 只使用已经通过严格 mapping validation 的 contact features。
-- HCDR3+LCDR3 subset 只使用两个 CDR3 loops 已验证可用的特征；
-  `cdr_min_distance` 在当前 validation 表中是 all-six-CDR 定义，仅用于 all-CDR subset。
+:
+-  dataset, predictions/checkpoints/reports
+-  mapping validation  contact features
+- HCDR3+LCDR3 subset  CDR3 loops ;
+  `cdr_min_distance`  validation  all-six-CDR , all-CDR subset
 """
 
 from __future__ import annotations
@@ -26,8 +26,8 @@ import sys
 os.environ.setdefault("XDG_CACHE_HOME", "/private/tmp/seqproft_xdg_cache")
 os.environ.setdefault("MPLCONFIGDIR", "/private/tmp/seqproft_matplotlib_cache")
 os.environ.setdefault("MPLBACKEND", "Agg")
-# 模型之前已经缓存到用户的 Hugging Face cache；本分析强制离线复用缓存，
-# 避免 post-hoc audit 在没有网络时尝试下载任何文件。
+#  Hugging Face cache;,
+#  post-hoc audit 
 os.environ.setdefault("HF_HOME", "/Users/yichenzeng/.cache/huggingface")
 os.environ.setdefault("HF_HUB_OFFLINE", "1")
 os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
@@ -410,28 +410,28 @@ def write_report(metrics: pd.DataFrame, coefficients: pd.DataFrame, lower: float
         "",
         "## Question",
         "",
-        "少量真实 CDR3 interface geometry features 是否能在不改深度模型的条件下，"
-        "为已有 cross-attention predictions 提供增量价值，尤其缓解 tail compression？",
+        " CDR3 interface geometry features ,"
+        " cross-attention predictions , tail compression?",
         "",
         "## Experimental Boundary",
         "",
-        "- 这是 **contact-covered subset analysis**，不是 full 1,168-row benchmark。",
-        "- 只纳入经过严格 chain/CDR-to-structure mapping validation 的样本；没有处理 ambiguous chain mapping。",
-        "- 不训练新的深度模型：sequence predictions 来自已有 cross-attention models。",
-        "- Augmentation 方法：在 train subset 上用 `Ridge(alpha=1.0)` 学习 "
-        "`target - sequence_prediction`，再对同一 subset 的 test rows 做 residual correction。",
-        "- 不用 test labels 选择 feature 或模型。",
-        f"- Tail thresholds 仍来自完整 stratified train split：P10 = `{lower:.4f}`，P90 = `{upper:.4f}`。",
+        "-  **contact-covered subset analysis**, full 1,168-row benchmark",
+        "-  chain/CDR-to-structure mapping validation ; ambiguous chain mapping",
+        "- :sequence predictions  cross-attention models",
+        "- Augmentation : train subset  `Ridge(alpha=1.0)`  "
+        "`target - sequence_prediction`, subset  test rows  residual correction",
+        "-  test labels  feature ",
+        f"- Tail thresholds  stratified train split:P10 = `{lower:.4f}`,P90 = `{upper:.4f}`",
         "",
         "## Subsets and Features",
         "",
-        "- `HCDR3+LCDR3 contact-safe`: 467 total validated rows；使用 "
+        "- `HCDR3+LCDR3 contact-safe`: 467 total validated rows; "
         "`hcdr3_contact_count_5A`, `lcdr3_contact_count_5A`, "
-        "`hcdr3_contact_fraction_5A`, `lcdr3_contact_fraction_5A`。",
-        "- `All-CDR contact-safe`: 422 total validated rows；在上述特征基础上增加 "
-        "`cdr_min_distance` 和 `all_cdr_contact_count_5A`。",
-        "- `cdr_min_distance` 在当前验证中定义为 all-six-CDR 到 antigen 的最小距离，"
-        "因此不用于 CDR3-only subset，以免强行补入未验证映射。",
+        "`hcdr3_contact_fraction_5A`, `lcdr3_contact_fraction_5A`",
+        "- `All-CDR contact-safe`: 422 total validated rows; "
+        "`cdr_min_distance`  `all_cdr_contact_count_5A`",
+        "- `cdr_min_distance`  all-six-CDR  antigen ,"
+        " CDR3-only subset,",
         "",
         "## Test Metrics Within The Same Subset",
         "",
@@ -453,12 +453,12 @@ def write_report(metrics: pd.DataFrame, coefficients: pd.DataFrame, lower: float
     lines.extend(
         [
             "",
-            "读法：MAE/RMSE/tail MAE 的 delta 小于 0 为改善；Spearman 的 delta 大于 0 为改善；"
-            "`pred_std/true_std` 要看是否更接近 1，`error_vs_true_Pearson` 要看是否更接近 0。",
+            ":MAE/RMSE/tail MAE  delta  0 ;Spearman  delta  0 ;"
+            "`pred_std/true_std`  1,`error_vs_true_Pearson`  0",
             "",
             "## Standardized Ridge Coefficients",
             "",
-            "这些系数仅用于观察 correction 倾向，不能视为稳定的生物机制解释。",
+            " correction ,",
         ]
     )
     coef_view = coefficients.copy()
@@ -513,19 +513,19 @@ def write_report(metrics: pd.DataFrame, coefficients: pd.DataFrame, lower: float
             "",
             *w2_lines,
             "",
-            "- 对 tail-aware w2，CDR3 contact correction 在两个 subset 中都给出小幅 "
-            "MAE/RMSE/Spearman/tail-MAE 改善，说明真实 interface geometry 可能含有增量信号。",
-            "- 但是 prediction spread 没有向 1 靠近，error-vs-true Pearson 也没有向 0 靠近；"
-            "因此这次线性 correction **没有缓解 regression-to-the-mean 核心现象**。",
-            "- 对 unweighted baseline 的结果不一致：一个 subset 恶化，另一个只改善部分 error "
-            "指标而没有改善 ranking/tail。这进一步说明当前 contact features 是弱增量证据，"
-            "而不是稳健的通用修正项。",
+            "-  tail-aware w2,CDR3 contact correction  subset  "
+            "MAE/RMSE/Spearman/tail-MAE , interface geometry ",
+            "-  prediction spread  1 ,error-vs-true Pearson  0 ;"
+            " correction ** regression-to-the-mean **",
+            "-  unweighted baseline : subset , error "
+            " ranking/tail contact features ,"
             "",
-            "- 即使某个 correction 在 subset 内改善，也不能直接宣称优于 full 1,168-row model："
-            "结构覆盖和 mapping 过滤改变了可评估样本集合。",
-            "- 如果两种 baseline 在同一 subset 上都显示 tail/spread 改善，说明真实 CDR3 geometry "
-            "可能提供增量信息；如果改善不稳定，则应把 contact counts 视为弱特征，而不是新主线模型依据。",
-            "- 这是小型 post-hoc linear correction，不是复杂 structure model，也不是最终性能结论。",
+            "",
+            "-  correction  subset , full 1,168-row model:"
+            " mapping ",
+            "-  baseline  subset  tail/spread , CDR3 geometry "
+            ";, contact counts ,",
+            "-  post-hoc linear correction, structure model,",
             "",
             "## Outputs",
             "",

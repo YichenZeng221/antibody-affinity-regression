@@ -1,12 +1,12 @@
 """ESM-2 + LoRA model for the first CDR-aware affinity baseline.
 
-中文人话说明：
-这个模型和 whole-sequence baseline 一样保留一个 shared ESM-2 + LoRA backbone。
-区别是输入更聚焦：
+:
+ whole-sequence baseline  shared ESM-2 + LoRA backbone
+:
     six CDR sequences + antigen sequence
 
-每条序列分别编码、mean pool，然后把 7 个 pooled embeddings concat，
-最后用一个 linear regression head 输出一个 scalar。
+mean pool, 7  pooled embeddings concat,
+ linear regression head  scalar
 """
 
 from __future__ import annotations
@@ -30,8 +30,8 @@ class SeqProFTCDRAwareAffinityRegressor(nn.Module):
             add_pooling_layer=False,
         )
 
-        # 与 whole-sequence baseline 保持同样 LoRA target modules 和超参数，
-        # 让比较主要落在“输入表示是否更聚焦”上。
+        #  whole-sequence baseline  LoRA target modules ,
+        # 
         lora_config = LoraConfig(
             r=int(config["lora_r"]),
             lora_alpha=int(config["lora_alpha"]),

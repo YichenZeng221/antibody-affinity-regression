@@ -1,16 +1,16 @@
 """Dataset for the first CDR-aware affinity regression baseline.
 
-中文人话说明：
-whole-sequence baseline 读三条序列：
+:
+whole-sequence baseline :
     heavy_sequence + light_sequence + antigen_sequence
 
-这个 CDR-aware baseline 改成更聚焦的七条序列：
+ CDR-aware baseline :
     HCDR1 + HCDR2 + HCDR3
     LCDR1 + LCDR2 + LCDR3
     antigen_sequence
 
-CDR 已经由 AbNumber + IMGT 提取好。这里不重新做 CDR extraction，
-只负责过滤提取失败的 row、tokenize 序列、返回 PyTorch tensors。
+CDR  AbNumber + IMGT  CDR extraction,
+ rowtokenize  PyTorch tensors
 """
 
 from __future__ import annotations
@@ -78,8 +78,8 @@ class CDRAwareAffinityDataset(Dataset):
         if missing_columns:
             raise ValueError(f"{csv_path} is missing columns: {sorted(missing_columns)}")
 
-        # 注释数据目前写的是 `success`；用户的过滤规则写的是 `ok`。
-        # 这里两个都接受，表达的是同一件事：heavy/light CDR 都提取成功。
+        #  `success`; `ok`
+        # ,:heavy/light CDR 
         heavy_ok = raw_data["heavy_cdr_status"].fillna("").astype(str).str.lower().isin(
             SUCCESS_STATUS_VALUES
         )
@@ -94,7 +94,7 @@ class CDRAwareAffinityDataset(Dataset):
                 f"{csv_path} has no rows with successful heavy and light CDR extraction."
             )
 
-        # CDR-aware regression 仍然预测连续 target，所以 label 是 float。
+        # CDR-aware regression  target, label  float
         self.targets = pd.to_numeric(self.data[target_column], errors="raise").astype(float).tolist()
 
     def __len__(self) -> int:
@@ -105,8 +105,8 @@ class CDRAwareAffinityDataset(Dataset):
     def tokenize_sequence(self, sequence: str, max_length: int) -> dict:
         """Tokenize one CDR or antigen sequence for ESM-2.
 
-        CDR 通常很短，antigen 可能较长；两者仍用同一 tokenizer。
-        padding 让 batch tensor 形状一致，attention_mask 告诉 pooling 哪些 token 真实存在。
+        CDR ,antigen ; tokenizer
+        padding  batch tensor ,attention_mask  pooling  token 
         """
 
         encoded = self.tokenizer(

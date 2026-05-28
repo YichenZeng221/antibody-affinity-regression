@@ -1,15 +1,15 @@
 """Inspect a local SAbDab all_structures archive without copying it.
 
-中文人话说明：
-这个脚本只读外部 archive：
+:
+ archive:
 
     /Users/yichenzeng/Downloads/all_structures
 
-它不会把 31GB 结构文件复制进项目，也不会跑全量 contact matrix。
-我们现在只想先确认：
-1. raw / imgt / chothia 三套 PDB 是否齐。
-2. summary.tsv 里的 chain ID 能不能在重点结构文件里找到。
-3. 这个 archive 后面是否有机会支持标准 CDR extraction 和 interaction/contact 分析。
+ 31GB , contact matrix
+:
+1. raw / imgt / chothia  PDB 
+2. summary.tsv  chain ID 
+3.  archive  CDR extraction  interaction/contact 
 """
 
 from __future__ import annotations
@@ -141,9 +141,9 @@ def summary_row_chain_ids(row: pd.Series) -> dict:
 def extract_pdb_chain_ids(path: Path) -> dict:
     """Parse one PDB and list chain IDs in the first model.
 
-    人话解释：
-    contact matrix 以后要按 chain 找 residues。
-    所以第一步先确认 PDB 文件里真的存在 summary 指定的 chain。
+    :
+    contact matrix  chain  residues
+     PDB  summary  chain
     """
 
     if not path.exists():

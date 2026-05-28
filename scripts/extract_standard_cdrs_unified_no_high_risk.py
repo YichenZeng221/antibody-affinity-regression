@@ -1,20 +1,20 @@
 """Annotate unified_no_high_risk with standard AbNumber IMGT CDR sequences.
 
-中文人话说明：
-这一步只做数据标注，不训练模型，也不覆盖原始 ablation dataset。
+:
+,, ablation dataset
 
-输入仍然是 whole-sequence 版本：
+ whole-sequence :
     heavy_sequence, light_sequence, antigen_sequence
 
-输出会复制原始每一行，并新增标准 CDR 列：
+, CDR :
     HCDR1/HCDR2/HCDR3
     LCDR1/LCDR2/LCDR3
 
-这里明确只使用 AbNumber 的 IMGT numbering：
-- AbNumber 会调用标准 antibody numbering 后端来识别 CDR 边界。
-- 不使用 fixed index slicing，因为不同抗体的 CDR 长度和边界并不固定。
-- 如果某一条 heavy/light sequence 编号失败，原始 row 仍保留，
-  只是把 status/error 写清楚，方便后续审计和决定训练过滤规则。
+ AbNumber  IMGT numbering:
+- AbNumber  antibody numbering  CDR 
+-  fixed index slicing, CDR 
+-  heavy/light sequence , row ,
+   status/error ,
 """
 
 from __future__ import annotations
@@ -54,14 +54,14 @@ CDR_COLUMNS = ["HCDR1", "HCDR2", "HCDR3", "LCDR1", "LCDR2", "LCDR3"]
 def load_abnumber_chain():
     """Import AbNumber only when the script starts running.
 
-    中文人话说明：
-    这样报错会很直接。如果你不在 `abnumber-cdr` 环境里运行，
-    脚本会告诉你缺 AbNumber，而不是在中间默默失败。
+    :
+     `abnumber-cdr` ,
+     AbNumber,
     """
 
-    # ANARCI 会在后台调用 `hmmscan`。如果用户用 conda env 的 Python
-    # 绝对路径运行脚本，但没有先 `conda activate`，shell PATH 可能还看不到
-    # 同一环境里的 hmmscan。把当前 Python 的 bin/ 加到 PATH，脚本就更稳。
+    # ANARCI  `hmmscan` conda env  Python
+    # , `conda activate`,shell PATH 
+    #  hmmscan Python  bin/  PATH,
     current_python_bin = str(Path(sys.executable).resolve().parent)
     os.environ["PATH"] = current_python_bin + os.pathsep + os.environ.get("PATH", "")
 

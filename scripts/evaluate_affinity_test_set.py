@@ -1,8 +1,8 @@
 """Evaluate the trained affinity regression model on the test set.
-中文人话说明：
-test set 是最终考试集，不应该参与训练或调参。
-这个脚本只加载已经训练好的 checkpoint，在 test.csv 上做预测，
-然后计算整体指标，并把每条样本的预测保存成 CSV。
+:
+test set ,
+ checkpoint, test.csv ,
+, CSV
 """
 
 import argparse
@@ -29,8 +29,8 @@ OPTIONAL_METADATA_COLUMNS = ["pdb", "antibody_id", "antigen_id", "source"]
 def parse_args() -> argparse.Namespace:
     """Read command line arguments.
 
-    默认使用 config_affinity.yaml。
-    传 --config 可以评估 clean_v2 all_methods / spr_only 的 checkpoint。
+     config_affinity.yaml
+     --config  clean_v2 all_methods / spr_only  checkpoint
     """
 
     parser = argparse.ArgumentParser(description="Evaluate affinity regression test set.")
@@ -41,17 +41,17 @@ def parse_args() -> argparse.Namespace:
 def build_prediction_row(row: dict, true_value: float, predicted_value: float) -> dict:
     """Build one predictions.csv row without assuming every dataset has pdb.
 
-    中文人话说明：
-    sequence_only / clean_v2 数据有 pdb 列。
-    TDC v1 数据没有 pdb，但有 antibody_id / antigen_id / source。
-    所以这里用 row.get(...) 安全读取可选 metadata，避免 KeyError。
+    :
+    sequence_only / clean_v2  pdb 
+    TDC v1  pdb, antibody_id / antigen_id / source
+     row.get(...)  metadata, KeyError
     """
 
     error = predicted_value - true_value
     absolute_error = abs(error)
 
-    # 因为 target 是 -log10(affinity)，log10 scale 上的误差可以转换成
-    # approximate fold error。比如 absolute_error=1 约等于差 10 倍。
+    #  target  -log10(affinity),log10 scale 
+    # approximate fold error absolute_error=1  10 
     fold_error = 10 ** absolute_error
 
     prediction_row = {
@@ -98,12 +98,12 @@ def main() -> None:
 
     args = parse_args()
 
-    # 读取训练时同一份配置，确保模型结构、max_length、数据路径一致。
+    # ,max_length
     config = load_config(args.config)
     device = get_device()
     print(f"Using device: {device}")
 
-    # tokenizer 必须和训练时的 model_name 一致。
+    # tokenizer  model_name 
     tokenizer = AutoTokenizer.from_pretrained(config["model_name"])
     test_dataset = AffinityRegressionDataset(
         csv_path=config["test_csv"],
@@ -117,13 +117,13 @@ def main() -> None:
         shuffle=False,
     )
 
-    # 先创建同样结构的模型，再把 checkpoint 里的参数加载进去。
+    # , checkpoint 
     model = SeqProFTAffinityRegressor(config).to(device)
     checkpoint = torch.load(config["checkpoint_path"], map_location=device)
     model.load_state_dict(checkpoint["model_state_dict"])
 
-    # evaluate_affinity_model 内部会使用 model.eval() 和 torch.no_grad()，
-    # 所以不会更新模型参数。
+    # evaluate_affinity_model  model.eval()  torch.no_grad(),
+    # 
     metrics, true_values, predicted_values = evaluate_affinity_model(
         model, test_dataloader, device
     )
@@ -137,8 +137,8 @@ def main() -> None:
     print(f"Approx fold error from RMSE: {metrics['approx_rmse_fold_error']:.1f}x")
     print(f"Test Spearman: {metrics['spearman']:.4f}")
 
-    # raw_test 保留了 sample_id/pdb/sequence 等原始信息，
-    # 这样 predictions CSV 不只是数字，也能回到具体样本看错误。
+    # raw_test  sample_id/pdb/sequence ,
+    #  predictions CSV ,
     raw_test = pd.read_csv(config["test_csv"])
     prediction_rows = []
 

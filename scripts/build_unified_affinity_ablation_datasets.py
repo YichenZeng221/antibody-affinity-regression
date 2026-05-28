@@ -1,15 +1,15 @@
 """Build ablation datasets from unified_affinity_dataset_v1.
 
-中文人话说明：
-这个脚本只做数据版本切分，不训练模型。
+:
+,
 
-我们从已经去重好的 ``all_unified_dedup.csv`` 出发，构建三个问题对照：
-1. no_peptide：去掉 peptide antigen 风险标记；
-2. no_high_risk：去掉 peptide / same H-L metadata / suspicious method；
-3. no_less_strict：去掉 less-strict SAbDab 来源。
+ ``all_unified_dedup.csv`` ,:
+1. no_peptide: peptide antigen ;
+2. no_high_risk: peptide / same H-L metadata / suspicious method;
+3. no_less_strict: less-strict SAbDab 
 
-每个版本都重新按 antigen_sequence group split。
-这样同一 antigen sequence 不会同时出现在 train/val/test，避免泄漏。
+ antigen_sequence group split
+ antigen sequence  train/val/test,
 """
 
 from __future__ import annotations

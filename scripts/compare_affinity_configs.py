@@ -1,15 +1,15 @@
 """Compare TDC affinity configs before a fair dataset-version experiment.
 
-中文人话说明：
-这个脚本不训练模型。
-它只检查两份 YAML config：
+:
 
-1. 原始 TDC v1 config。
-2. TDC + SAbDab supplement v1 config。
+ YAML config:
 
-我们允许 dataset path 和输出路径不同。
-但是 model、LoRA、learning rate、batch size 这类训练条件不能悄悄变，
-否则后面的 metric 差异就不是 apples-to-apples comparison。
+1.  TDC v1 config
+2. TDC + SAbDab supplement v1 config
+
+ dataset path 
+ modelLoRAlearning ratebatch size ,
+ metric  apples-to-apples comparison
 """
 
 from __future__ import annotations
@@ -19,8 +19,8 @@ import sys
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-# 这个脚本从 scripts/ 目录直接运行时，先把项目根目录加入 import path，
-# Python 才能找到 src/utils.py 里的 load_config。
+#  scripts/ , import path,
+# Python  src/utils.py  load_config
 sys.path.append(str(PROJECT_ROOT))
 
 from src.utils import load_config
@@ -36,10 +36,10 @@ REPORT_PATH = (
     / "config_comparison_report.md"
 )
 
-# 这些字段本来就应该不同：
-# - dataset CSV 指向不同 dataset version
-# - checkpoint / predictions 不能覆盖旧实验输出
-# - output/run/experiment 命名字段若未来加入，也允许不同
+# :
+# - dataset CSV  dataset version
+# - checkpoint / predictions 
+# - output/run/experiment ,
 EXPECTED_DIFFERENCE_FIELDS = {
     "train_csv",
     "val_csv",
@@ -51,9 +51,9 @@ EXPECTED_DIFFERENCE_FIELDS = {
     "experiment_name",
 }
 
-# 这些字段是公平训练比较里最需要盯住的字段。
-# 当前 config 没有显式 pooling/loss/metrics，代码固定 mean pooling + MSE + regression metrics；
-# 如果未来 config 里加入它们，这个脚本也会把差异抓出来。
+# 
+#  config  pooling/loss/metrics, mean pooling + MSE + regression metrics;
+#  config ,
 UNEXPECTED_CONTROL_FIELDS = {
     "model_name",
     "task_type",

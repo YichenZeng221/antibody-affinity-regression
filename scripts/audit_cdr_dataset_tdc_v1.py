@@ -1,16 +1,16 @@
 """Audit the TDC v1 CDR feature dataset before using it for experiments.
 
-中文人话说明：
-这个脚本只做数据检查，不训练模型。
-它读取 CDR feature extraction 生成的 ``all_cdr.csv``，回答几个很实际的问题：
+:
+,
+ CDR feature extraction  ``all_cdr.csv``,:
 
-1. 这个 CSV 的列、split、target 和 sequence 长度是否还完整？
-2. train/val/test 之间是否出现可能的 leakage？
-3. 当前 CDR backend 到底是标准 annotation，还是 heuristic 粗切片？
-4. heuristic 产生的 CDR 长度是否明显接近固定值？
+1.  CSV splittarget  sequence ?
+2. train/val/test  leakage?
+3.  CDR backend  annotation, heuristic ?
+4. heuristic  CDR ?
 
-CDR feature baseline 很容易被“看起来有 CDR 列”骗到。
-所以在建模前先 audit 一遍，能避免把粗糙 fallback 当成正式特征。
+CDR feature baseline  CDR 
+ audit , fallback 
 """
 
 from __future__ import annotations
@@ -66,8 +66,8 @@ def require_columns(dataframe: pd.DataFrame) -> None:
 def is_missing(series: pd.Series) -> pd.Series:
     """Return a mask for real NaN values and blank string cells.
 
-    Pandas 会把很多空白 CSV 单元格读成 NaN。
-    有些字符串列也可能只是 ``""`` 或空格，所以这里一起算作 missing。
+    Pandas  CSV  NaN
+     ``""`` , missing
     """
 
     missing_mask = series.isna()
@@ -140,8 +140,8 @@ def triplet_set(dataframe: pd.DataFrame) -> set[tuple[str, str, str]]:
 def overlap_report(sets_by_split: dict[str, set]) -> dict:
     """Count overlap for train/val/test pairs.
 
-    overlap count = 两个 split 里完全相同值的数量。
-    对 antigen_sequence 和 triplet 来说，它能直接提醒我们是否破坏了 group split。
+    overlap count =  split 
+     antigen_sequence  triplet , group split
     """
 
     split_pairs = [("train", "val"), ("train", "test"), ("val", "test")]
@@ -446,7 +446,7 @@ def build_report(dataframe: pd.DataFrame) -> dict:
 
 
 def print_human_summary(report: dict) -> None:
-    """Print the audit conclusion in plain Chinese for terminal reading."""
+    """Print the audit conclusion in plain language for terminal reading."""
 
     leakage = report["leakage"]
     conclusions = report["conclusions"]
@@ -455,20 +455,20 @@ def print_human_summary(report: dict) -> None:
     print(f"JSON report: {JSON_REPORT_PATH.relative_to(PROJECT_ROOT)}")
     print(f"Markdown report: {MARKDOWN_REPORT_PATH.relative_to(PROJECT_ROOT)}")
     print()
-    print(f"Dataset 基础字段是否完整: {conclusions['dataset_complete']}")
-    print(f"Train/val/test split 是否仍然保留: {conclusions['split_preserved']}")
-    print(f"Target neg_log10_affinity 是否都能正常读取: {conclusions['target_healthy']}")
-    print("Leakage 检查:")
+    print(f"Dataset : {conclusions['dataset_complete']}")
+    print(f"Train/val/test split : {conclusions['split_preserved']}")
+    print(f"Target neg_log10_affinity : {conclusions['target_healthy']}")
+    print("Leakage :")
     print(f"  antigen_sequence overlap: {leakage['antigen_sequence_overlap']}")
     print(f"  heavy+light+antigen triplet overlap: {leakage['heavy_light_antigen_triplet_overlap']}")
     print(f"  antibody_id overlap: {leakage['antibody_id_overlap']}")
     print(f"  antigen_id overlap: {leakage['antigen_id_overlap']}")
-    print(f"Heuristic CDR 是否可信: {conclusions['heuristic_cdr_trustworthy']}")
+    print(f"Heuristic CDR : {conclusions['heuristic_cdr_trustworthy']}")
     if report["heuristic_cdr_audit"]["warning"]:
         print(f"  Warning: {report['heuristic_cdr_audit']['warning']}.")
-    print(f"现在是否可以进入 simple CDR feature baseline: {conclusions['ready_for_simple_cdr_feature_baseline']}")
+    print(f" simple CDR feature baseline: {conclusions['ready_for_simple_cdr_feature_baseline']}")
     if not conclusions["ready_for_simple_cdr_feature_baseline"]:
-        print("建议：先拿标准 AbNumber/ANARCI IMGT CDR extraction 结果，再做正式 CDR baseline。")
+        print(": AbNumber/ANARCI IMGT CDR extraction , CDR baseline")
 
 
 def main() -> None:

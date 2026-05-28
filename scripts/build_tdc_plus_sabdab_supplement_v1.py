@@ -1,21 +1,21 @@
 """Build TDC v1 plus ready SAbDab supplement affinity dataset.
 
-中文人话说明：
-这个脚本只做一个新 dataset 版本，不训练模型。
+:
+ dataset ,
 
-输入有两部分：
-1. TDC v1 antigen-group split 的 train/val/test。
-2. 前一步 audit 出来的 supplement_ready_candidates.csv。
+:
+1. TDC v1 antigen-group split  train/val/test
+2.  audit  supplement_ready_candidates.csv
 
-为什么不能直接把 supplement append 到原来的 train/test？
-- 原来的 TDC v1 split 是按 antigen_sequence group 做的。
-- 新样本加进来后，如果不重新 split，可能把同一个 antigen 放到不同 split，
-  让 test 泄漏训练信息。
-- 所以这里先把 full data 合并，再重新 antigen-group split。
+ supplement append  train/test?
+-  TDC v1 split  antigen_sequence group 
+- , split, antigen  split,
+   test 
+-  full data , antigen-group split
 
-输出写到新的目录：
+:
     data/processed_affinity/tdc_plus_sabdab_supplement_v1/
-原来的 tdc_v1 完全不覆盖。
+ tdc_v1 
 """
 
 from __future__ import annotations
@@ -151,11 +151,11 @@ def conflict_target(group: pd.DataFrame) -> bool:
 def deduplicate_triplets(dataframe: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, int]:
     """Deduplicate exact triplets and separate target conflicts.
 
-    中文人话说明：
-    模型看到的输入就是 heavy/light/antigen sequences。
-    如果完全相同输入出现多次，可以保留一条；
-    如果完全相同输入却对应不同 target，就不能静默决定留谁，
-    必须写进 conflict report 让我们人工看。
+    :
+     heavy/light/antigen sequences
+    ,;
+     target,,
+     conflict report 
     """
 
     kept_groups = []
@@ -198,8 +198,8 @@ def antigen_group_split(dataframe: pd.DataFrame, seed: int = SEED) -> dict[str, 
     split_to_antigens = {split_name: [] for split_name in SPLITS}
     split_sizes = {split_name: 0 for split_name in SPLITS}
 
-    # 一个 antigen group 不能拆开，所以最终比例可能略偏。
-    # greedy 策略会把下一个 group 放到当前最缺样本的 split。
+    #  antigen group ,
+    # greedy  group  split
     for _, row in antigen_sizes.iterrows():
         deficits = {
             split_name: target_sizes[split_name] - split_sizes[split_name]

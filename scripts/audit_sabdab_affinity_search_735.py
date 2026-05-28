@@ -1,18 +1,18 @@
 """Audit Patrick's SAbDab ``affinity=True`` search result summary.
 
-中文人话说明：
-SAbDab 网页上显示的 ``735 structures`` 和 “735 个可训练 affinity 样本”
-不是一回事：
+:
+SAbDab  ``735 structures``  735  affinity 
+:
 
-- 网页搜索结果先按 structure/PDB 选中结构；
-- summary TSV 是 chain-row metadata，一个 PDB 可以展开成多行；
-- 很多被搜索命中的结构行本身 affinity cell 仍然可能是空的。
+-  structure/PDB ;
+- summary TSV  chain-row metadata, PDB ;
+-  affinity cell 
 
-这个脚本只做 metadata 与现有 dataset overlap audit：
-1. 不训练模型；
-2. 不覆盖已有 dataset；
-3. 不解析全部结构；
-4. 对 ``all_structures`` 只检查 raw/imgt/chothia PDB 文件是否存在。
+ metadata  dataset overlap audit:
+1. ;
+2.  dataset;
+3. ;
+4.  ``all_structures``  raw/imgt/chothia PDB 
 """
 
 from __future__ import annotations
@@ -36,9 +36,9 @@ SUPPLEMENT_V1_SPLIT_DIR = (
     / "tdc_plus_sabdab_supplement_v1"
     / "antigen_group_split"
 )
-# sequence_only 是之前已经从 SAbDab/PDB 提取成功的本地 sequence cache。
-# search summary 本身没有 sequence，所以只有 exact chain metadata 能匹配到这里时，
-# 我们才能做真正的 sequence-triplet overlap check。
+# sequence_only  SAbDab/PDB  sequence cache
+# search summary  sequence, exact chain metadata ,
+#  sequence-triplet overlap check
 SEQUENCE_ONLY_DIR = PROJECT_ROOT / "data" / "processed_affinity" / "sequence_only"
 ALL_STRUCTURES_ROOT = Path("/Users/yichenzeng/Downloads/all_structures")
 OUTPUT_DIR = PROJECT_ROOT / "data" / "processed_affinity" / "sabdab_affinity_search_735_audit"
@@ -365,10 +365,10 @@ def annotate_new_candidates(
 ) -> pd.DataFrame:
     """Create a metadata candidate CSV for rows not PDB-covered by supplement v1.
 
-    这里的 ``new_candidate`` 仍然只是 possible candidate：
-    summary row 有可计算 affinity target 和完整 sequence-antigen chain metadata，
-    但 search summary 本身不提供 sequences。若本地 sequence_only 没有 exact match，
-    后面仍需单独做 sequence extraction。
+     ``new_candidate``  possible candidate:
+    summary row  affinity target  sequence-antigen chain metadata,
+     search summary  sequences sequence_only  exact match,
+     sequence extraction
     """
 
     candidate_mask = (

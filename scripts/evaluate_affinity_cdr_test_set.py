@@ -1,13 +1,13 @@
 """Evaluate CDR-aware affinity regression and compare with whole-sequence baseline.
 
-中文人话说明：
-这个脚本在你训练完 CDR-aware checkpoint 后运行。
-它会：
-1. 在 filtered CDR-aware test set 上预测。
-2. 保存每个样本 prediction。
-3. 计算 MAE/RMSE/Spearman 和 regression-to-mean 诊断。
-4. 如果 whole-sequence best predictions 存在，在同一批 sample_id 上做对照。
-5. 写 `cdr_aware_report.md`，方便你直接看实验结论。
+:
+ CDR-aware checkpoint 
+:
+1.  filtered CDR-aware test set 
+2.  prediction
+3.  MAE/RMSE/Spearman  regression-to-mean 
+4.  whole-sequence best predictions , sample_id 
+5.  `cdr_aware_report.md`,
 """
 
 from __future__ import annotations

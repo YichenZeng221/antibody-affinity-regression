@@ -1,7 +1,7 @@
-"""绘制 ANDD stratified 模型的 regression-to-the-mean 诊断图。
+""" ANDD stratified  regression-to-the-mean 
 
-本脚本只读取已经生成的 test predictions，不会训练模型或修改数据。
-两个模型来自同一个 ANDD stratified antigen-level test split，因此可以公平比较。
+ test predictions,
+ ANDD stratified antigen-level test split,
 """
 
 from __future__ import annotations
@@ -12,7 +12,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-# 使用无窗口绘图后端，并把字体缓存放到临时目录，避免污染项目目录。
+# ,,
 os.environ.setdefault("XDG_CACHE_HOME", "/private/tmp/seqproft_xdg_cache")
 os.environ.setdefault("MPLCONFIGDIR", "/private/tmp/seqproft_matplotlib_cache")
 os.environ.setdefault("MPLBACKEND", "Agg")
@@ -43,12 +43,12 @@ PRED_COLUMN = "predicted_neg_log10_affinity"
 
 
 def load_predictions(path: Path, model_name: str) -> pd.DataFrame:
-    """读取并标准化已有 prediction CSV 的必要列。"""
+    """ prediction CSV """
     frame = pd.read_csv(path)
     required = {"sample_id", TRUE_COLUMN, PRED_COLUMN}
     missing = sorted(required - set(frame.columns))
     if missing:
-        raise ValueError(f"{path} 缺少必要 columns: {missing}")
+        raise ValueError(f"{path}  columns: {missing}")
 
     result = frame[["sample_id", TRUE_COLUMN, PRED_COLUMN]].copy()
     result[TRUE_COLUMN] = pd.to_numeric(result[TRUE_COLUMN], errors="coerce")
@@ -60,17 +60,17 @@ def load_predictions(path: Path, model_name: str) -> pd.DataFrame:
 
 
 def validate_same_test_set(pooled: pd.DataFrame, cross_attention: pd.DataFrame) -> None:
-    """确认两个模型的散点来自相同 test samples 和相同真实 target。"""
+    """ test samples  target"""
     pooled_truth = pooled.set_index("sample_id")[TRUE_COLUMN].sort_index()
     cross_truth = cross_attention.set_index("sample_id")[TRUE_COLUMN].sort_index()
     if not pooled_truth.index.equals(cross_truth.index):
-        raise ValueError("pooled 与 cross-attention prediction CSV 的 sample_id 不一致。")
+        raise ValueError("pooled  cross-attention prediction CSV  sample_id ")
     if not np.allclose(pooled_truth.to_numpy(), cross_truth.to_numpy()):
-        raise ValueError("pooled 与 cross-attention prediction CSV 的 true target 不一致。")
+        raise ValueError("pooled  cross-attention prediction CSV  true target ")
 
 
 def diagnostics(frame: pd.DataFrame) -> dict[str, float]:
-    """计算和 regression-to-the-mean 直接相关的简洁诊断指标。"""
+    """ regression-to-the-mean """
     true = frame[TRUE_COLUMN]
     pred = frame[PRED_COLUMN]
     residual = frame["residual"]
@@ -86,7 +86,7 @@ def diagnostics(frame: pd.DataFrame) -> dict[str, float]:
 
 
 def draw_scatter(pooled: pd.DataFrame, cross_attention: pd.DataFrame) -> None:
-    """绘制 true-vs-predicted 与 residual-vs-true 两个诊断 panel。"""
+    """ true-vs-predicted  residual-vs-true  panel"""
     styles = {
         "All-CDR pooled": {"color": "#247BA0", "marker": "o"},
         "All-CDR cross-attention": {"color": "#C65A4A", "marker": "^"},
@@ -137,7 +137,7 @@ def draw_scatter(pooled: pd.DataFrame, cross_attention: pd.DataFrame) -> None:
             linewidths=0.35,
         )
 
-        # 添加简单线性趋势线，帮助直接观察 residual 是否随 true target 下降。
+        # , residual  true target 
         true_grid = np.linspace(frame[TRUE_COLUMN].min(), frame[TRUE_COLUMN].max(), 120)
         pred_fit = np.polyfit(frame[TRUE_COLUMN], frame[PRED_COLUMN], 1)
         residual_fit = np.polyfit(frame[TRUE_COLUMN], frame["residual"], 1)
@@ -221,53 +221,53 @@ def write_summary(
     pooled_stats: dict[str, float],
     cross_stats: dict[str, float],
 ) -> None:
-    """生成 beginner-friendly 中文诊断说明。"""
+    """ beginner-friendly """
     report = f"""# Regression-To-The-Mean Scatter Summary
 
-## 图的用途
+## 
 
-本图使用同一个 ANDD antibody v2 stratified antigen-level test set 上的两个模型 predictions：
+ ANDD antibody v2 stratified antigen-level test set  predictions:
 
-- All-CDR pooled：`{POOLED_PATH.relative_to(ROOT)}`
-- All-CDR cross-attention：`{CROSS_ATTENTION_PATH.relative_to(ROOT)}`
+- All-CDR pooled:`{POOLED_PATH.relative_to(ROOT)}`
+- All-CDR cross-attention:`{CROSS_ATTENTION_PATH.relative_to(ROOT)}`
 
-两份 predictions 的 `sample_id` 与 true target 已核对一致，共 `{len(pooled)}` 条 test samples，因此它们之间可以公平比较。
+ predictions  `sample_id`  true target , `{len(pooled)}`  test samples,
 
-## 怎么看这两张图
+## 
 
 ### True vs Predicted Scatter
 
-- 横轴是真实 affinity target，纵轴是模型 prediction。
-- 虚线 `y=x` 表示理想预测。
-- 如果真实 target 范围很宽，但 prediction 点集中在中间一小段，说明模型的 **prediction spread 被压缩**：模型不敢预测极强或极弱 affinity。
+-  affinity target, prediction
+-  `y=x` 
+-  target , prediction , **prediction spread **: affinity
 
 ### Residual vs True Scatter
 
-- residual 定义为 `prediction - true`。
-- 虚线 `y=0` 表示没有系统偏差。
-- 如果趋势线明显向下，即 residual 与 true target 呈负相关，说明低 target 往往被高估，而高 target 往往被低估，这就是 **regression-to-the-mean**。
+- residual  `prediction - true`
+-  `y=0` 
+- , residual  true target , target , target , **regression-to-the-mean**
 
-## 同一 Split 下的诊断数值
+##  Split 
 
 | Model | Test rows | pred_std / true_std | error vs true Pearson | residual trend slope | prediction trend slope |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | All-CDR pooled | {int(pooled_stats['rows'])} | {pooled_stats['pred_std_true_std']:.4f} | {pooled_stats['error_vs_true_pearson']:.4f} | {pooled_stats['residual_slope']:.4f} | {pooled_stats['prediction_slope']:.4f} |
 | All-CDR cross-attention | {int(cross_stats['rows'])} | {cross_stats['pred_std_true_std']:.4f} | {cross_stats['error_vs_true_pearson']:.4f} | {cross_stats['residual_slope']:.4f} | {cross_stats['prediction_slope']:.4f} |
 
-读取方式：
+:
 
-- `pred_std / true_std` 越接近 `1`，预测范围越健康。
-- `error vs true Pearson` 和 residual trend slope 越接近 `0`，regression-to-the-mean 越轻。
+- `pred_std / true_std`  `1`,
+- `error vs true Pearson`  residual trend slope  `0`,regression-to-the-mean 
 
-## 结论
+## 
 
-- 两个模型都仍然存在 regression-to-the-mean：散点没有完全沿 `y=x` 铺开，residual 趋势仍为负。
-- All-CDR pooled 的 `pred_std / true_std = {pooled_stats['pred_std_true_std']:.4f}`，预测范围压缩更明显。
-- All-CDR cross-attention 的 `pred_std / true_std = {cross_stats['pred_std_true_std']:.4f}`，比 pooled 更接近 `1`。
-- Cross-attention 的 `error vs true Pearson = {cross_stats['error_vs_true_pearson']:.4f}`，比 pooled 的 `{pooled_stats['error_vs_true_pearson']:.4f}` 更接近 `0`。
-- 因此，在同一 stratified test split 上，**cross-attention 的 regression-to-the-mean 更轻**，虽然它并不意味着 overall MAE 一定更好。
+-  regression-to-the-mean: `y=x` ,residual 
+- All-CDR pooled  `pred_std / true_std = {pooled_stats['pred_std_true_std']:.4f}`,
+- All-CDR cross-attention  `pred_std / true_std = {cross_stats['pred_std_true_std']:.4f}`, pooled  `1`
+- Cross-attention  `error vs true Pearson = {cross_stats['error_vs_true_pearson']:.4f}`, pooled  `{pooled_stats['error_vs_true_pearson']:.4f}`  `0`
+- , stratified test split ,**cross-attention  regression-to-the-mean **, overall MAE 
 
-这与已有报告一致：pooled all-CDR 的总体 MAE 略好，而 cross-attention 更有利于 prediction spread、ranking 和 high-affinity tail 行为。
+:pooled all-CDR  MAE , cross-attention  prediction spreadranking  high-affinity tail 
 """
     SUMMARY_PATH.write_text(report, encoding="utf-8")
 

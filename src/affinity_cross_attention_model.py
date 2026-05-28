@@ -1,18 +1,18 @@
 """All-CDR CDR-to-antigen learnable cross-attention affinity model.
 
-中文人话说明：
-这版不再用 dot-product interaction matrix 的固定 summary statistics。
-它让 MultiheadAttention 学习：
+:
+ dot-product interaction matrix  summary statistics
+ MultiheadAttention :
 
     query = all CDR residue tokens
     key/value = antigen residue tokens
 
-输出的 attended CDR tokens 是“看过 antigen 后”的 CDR 表示。
-然后模型把：
-1. attention-pooled attended CDR 表示
-2. mean-pooled 原始 CDR 表示
-3. mean-pooled antigen 表示
-拼接起来，交给一个小 MLP 做 affinity regression。
+ attended CDR tokens  antigen  CDR 
+:
+1. attention-pooled attended CDR 
+2. mean-pooled  CDR 
+3. mean-pooled antigen 
+, MLP  affinity regression
 """
 
 from __future__ import annotations
@@ -123,7 +123,7 @@ class SeqProFTCrossAttentionAffinityRegressor(nn.Module):
         all_cdr_mask = torch.cat(cdr_masks, dim=1)
         antigen_tokens = self.encode_token_matrix(antigen_input_ids, antigen_attention_mask)
 
-        # MultiheadAttention 的 key_padding_mask 中 True 表示“忽略该 antigen 位置”。
+        # MultiheadAttention  key_padding_mask  True  antigen 
         attended_cdr_tokens, _ = self.cross_attention(
             query=all_cdr_tokens,
             key=antigen_tokens,

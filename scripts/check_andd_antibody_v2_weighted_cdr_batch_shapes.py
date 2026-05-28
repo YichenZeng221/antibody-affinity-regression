@@ -1,8 +1,8 @@
 """Dry-run shape check for weighted ANDD antibody v2 CDR training.
 
-中文人话说明：
-这个脚本只跑一个 batch 的 forward 和 weighted loss。
-它不训练、不 optimizer.step、不保存 checkpoint。
+:
+ batch  forward  weighted loss
+ optimizer.step checkpoint
 """
 
 from __future__ import annotations

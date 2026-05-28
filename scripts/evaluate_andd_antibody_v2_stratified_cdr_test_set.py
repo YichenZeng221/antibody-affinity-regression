@@ -1,13 +1,13 @@
 """Evaluate the ANDD stratified all-CDR pooled run after manual training.
 
-中文人话说明：
-这个脚本不会训练模型。它只在你已经手动训练出的 checkpoint 上做 test 推理，
-并把新 stratified split 的结果与旧 split baseline 放在一起比较。
+:
+ checkpoint  test ,
+ stratified split  split baseline 
 
-和通用 CDR evaluator 不同的地方：
-- low/mid/high 区间只用各自 train split 的 tertiles 定义；
-- tail MAE 只用各自 train split 的 P10/P90 定义；
-- 因而能更公平地检查 split coverage 对 regression-to-the-mean 的影响。
+ CDR evaluator :
+- low/mid/high  train split  tertiles ;
+- tail MAE  train split  P10/P90 ;
+-  split coverage  regression-to-the-mean 
 """
 
 from __future__ import annotations
@@ -45,7 +45,7 @@ OLD_PREDICTIONS_CSV = (
 
 
 def parse_args() -> argparse.Namespace:
-    """读取新 stratified experiment 的配置路径。"""
+    """ stratified experiment """
 
     parser = argparse.ArgumentParser(description="Evaluate ANDD stratified CDR-aware checkpoint.")
     parser.add_argument(
@@ -56,7 +56,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def successful_target_values(csv_path: str | Path) -> pd.Series:
-    """读取训练 target，并应用与 Dataset 相同的 CDR 成功过滤规则。"""
+    """ target, Dataset  CDR """
 
     frame = pd.read_csv(csv_path)
     heavy_ok = frame["heavy_cdr_status"].fillna("").astype(str).str.lower().isin(SUCCESS_STATUS_VALUES)
@@ -65,7 +65,7 @@ def successful_target_values(csv_path: str | Path) -> pd.Series:
 
 
 def metric_bundle(predictions: pd.DataFrame, train_targets: pd.Series) -> dict:
-    """按照训练集定义的 bins/tails 计算指标。"""
+    """ bins/tails """
 
     true_values = pd.to_numeric(predictions[TRUE_COL], errors="raise")
     predicted_values = pd.to_numeric(predictions[PRED_COL], errors="raise")
@@ -121,7 +121,7 @@ def metric_bundle(predictions: pd.DataFrame, train_targets: pd.Series) -> dict:
 
 
 def prediction_rows(dataset: CDRAwareAffinityDataset, true_values: list[float], predicted_values: list[float]) -> pd.DataFrame:
-    """按 DataLoader 顺序把 test metadata 与预测写在一起。"""
+    """ DataLoader  test metadata """
 
     rows: list[dict] = []
     for metadata, true_value, predicted_value in zip(
@@ -149,13 +149,13 @@ def prediction_rows(dataset: CDRAwareAffinityDataset, true_values: list[float], 
 
 
 def fmt(value: float | None) -> str:
-    """在 Markdown 中清楚显示可空指标。"""
+    """ Markdown """
 
     return "NA" if value is None or pd.isna(value) else f"{value:.4f}"
 
 
 def write_report(config: dict, new_metrics: dict, old_metrics: dict | None) -> Path:
-    """输出新旧 split baseline 对比报告。"""
+    """ split baseline """
 
     path = Path(config["report_path"])
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -240,7 +240,7 @@ def write_report(config: dict, new_metrics: dict, old_metrics: dict | None) -> P
 
 
 def main() -> None:
-    """加载手动训练好的 checkpoint，运行新 test inference 并保存报告。"""
+    """ checkpoint, test inference """
 
     args = parse_args()
     config = load_config(args.config)

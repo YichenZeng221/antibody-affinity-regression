@@ -1,14 +1,14 @@
 """Error analysis for the best unified_no_high_risk affinity model.
 
-中文人话说明：
-这个脚本只分析已经保存好的 test predictions 和 test CSV。
-它不训练模型、不重新 split dataset，也不修改 affinity model。
+:
+ test predictions  test CSV
+ split dataset, affinity model
 
-我们重点看：
-1. top errors 是哪些样本；
-2. residual 是否呈现 regression-to-mean；
-3. source / antigen / target range / sequence length 是否和误差有关；
-4. max_length=512 有没有让某些单独序列被截断。
+:
+1. top errors ;
+2. residual  regression-to-mean;
+3. source / antigen / target range / sequence length ;
+4. max_length=512 
 """
 
 from __future__ import annotations
@@ -44,7 +44,7 @@ REPORT_PATH = OUTPUT_DIR / "error_analysis_report.md"
 TOP_ERRORS_PATH = OUTPUT_DIR / "top_errors.csv"
 ERROR_BY_GROUP_PATH = OUTPUT_DIR / "error_by_group.csv"
 
-# Matplotlib 常会写字体缓存。缓存放到项目 outputs，避免 home 目录权限噪音。
+# Matplotlib  outputs, home 
 MPL_CACHE_DIR = PROJECT_ROOT / "outputs" / "matplotlib_cache"
 MPL_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 os.environ.setdefault("MPLCONFIGDIR", str(MPL_CACHE_DIR))

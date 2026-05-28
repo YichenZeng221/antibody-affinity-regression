@@ -1,29 +1,29 @@
 """Build a heavy-chain vs light-chain dataset from SAbDab.
 
-中文人话说明：
-这个脚本只负责“真实数据集构建”，不改模型、不改训练代码。
+:
+,
 
-输入：
+:
     data/raw/sabdab_summary.tsv
 
-输出：
+:
     data/processed/train.csv
     data/processed/val.csv
     data/processed/test.csv
 
-每个输出 CSV 保存这些列：
+ CSV :
     sequence,label,pdb,chain,chain_type
 
-标签约定：
-    label = 1 表示 antibody heavy chain
-    label = 0 表示 antibody light chain
+:
+    label = 1  antibody heavy chain
+    label = 0  antibody light chain
 
-为什么先用 max_rows 小规模测试？
-SAbDab summary 可能有很多行。每一行都可能要下载 PDB、解析结构、提取 chain，
-第一次全量跑会比较久，看起来像“卡住”。所以第一版默认只处理前 100 行。
-确认流程没问题后，你可以把 --max_rows 改大，或者传 --max_rows none 跑全量。
+ max_rows ?
+SAbDab summary  PDB chain,
+, 100 
+, --max_rows , --max_rows none 
 
-运行示例：
+:
     python scripts/build_sabdab_chain_dataset.py --max_rows 100
     python scripts/build_sabdab_chain_dataset.py --max_rows none
 """
@@ -49,11 +49,11 @@ RANDOM_SEED = 42
 
 
 def parse_max_rows(value: str) -> int | None:
-    """把命令行里的 --max_rows 参数转成 int 或 None。
+    """ --max_rows  int  None
 
-    中文人话说明：
-    - --max_rows 100 表示只处理前 100 行
-    - --max_rows none 表示不限制行数，处理全量
+    :
+    - --max_rows 100  100 
+    - --max_rows none ,
     """
 
     text = str(value).strip().lower()
@@ -63,7 +63,7 @@ def parse_max_rows(value: str) -> int | None:
 
 
 def parse_args() -> argparse.Namespace:
-    """读取命令行参数。"""
+    """"""
 
     parser = argparse.ArgumentParser(
         description="Build train/val/test CSV files from SAbDab summary TSV."
@@ -78,14 +78,14 @@ def parse_args() -> argparse.Namespace:
 
 
 def is_missing_chain_id(chain_id: str) -> bool:
-    """判断 chain id 是否缺失。
+    """ chain id 
 
-    中文人话说明：
-    SAbDab 里 Hchain/Lchain 可能是 NA。
-    NA 的意思是：这个 summary row 没告诉我们对应的 chain id。
+    :
+    SAbDab  Hchain/Lchain  NA
+    NA : summary row  chain id
 
-    如果 chain id 缺失，我们就不知道应该从 PDB 文件里提取哪条链，
-    所以必须跳过对应 chain。
+     chain id , PDB ,
+     chain
     """
 
     text = str(chain_id).strip()
@@ -93,24 +93,24 @@ def is_missing_chain_id(chain_id: str) -> bool:
 
 
 def clean_chain_id(chain_id: str) -> str:
-    """清理 chain id 前后空格。"""
+    """ chain id """
 
     return str(chain_id).strip()
 
 
 def download_pdb_file(pdb_id: str, stats: dict) -> Path | None:
-    """下载或复用本地缓存的 PDB 文件。
+    """ PDB 
 
-    中文人话说明：
-    为什么要用 pdb + chain id？
+    :
+     pdb + chain id?
 
-    PDB ID 只能定位到一个结构文件，比如 11HK。
-    但一个 PDB 文件里通常有很多条 chain：抗原 chain、heavy chain、light chain 等。
-    所以必须用：
+    PDB ID , 11HK
+     PDB  chain: chainheavy chainlight chain 
+    :
 
         pdb id + chain id
 
-    才能准确提取一条 antibody chain sequence。
+     antibody chain sequence
     """
 
     pdb_id = pdb_id.upper()
@@ -141,15 +141,15 @@ def extract_chain_sequence(
     chain_name: str,
     stats: dict,
 ) -> str | None:
-    """从 PDB 文件里提取指定 chain 的 amino acid sequence。
+    """ PDB  chain  amino acid sequence
 
-    中文人话说明：
-    PDB 里的残基通常是三字母代码，比如 ALA、GLY、TYR。
-    ESM-2 需要一字母氨基酸序列，所以这里会转成 A、G、Y。
+    :
+    PDB , ALAGLYTYR
+    ESM-2 , AGY
 
-    chain_name 只是为了打印更清楚：
-    - "heavy" 表示 Hchain
-    - "light" 表示 Lchain
+    chain_name :
+    - "heavy"  Hchain
+    - "light"  Lchain
     """
 
     parser = PDBParser(QUIET=True)
@@ -194,14 +194,14 @@ def extract_chain_sequence(
 
 
 def remove_duplicate_sequences(records: list[dict], stats: dict) -> list[dict]:
-    """删除重复 sequence。
+    """ sequence
 
-    中文人话说明：
-    为什么要删除重复 sequence？
+    :
+     sequence?
 
-    如果同一条 sequence 同时出现在 train 和 test，
-    模型可能只是记住了这条序列，而不是真的学会 heavy/light 的区别。
-    去重可以让后面的评估更干净一点。
+     sequence  train  test,
+    , heavy/light 
+    
     """
 
     seen_sequences = set()
@@ -220,29 +220,29 @@ def remove_duplicate_sequences(records: list[dict], stats: dict) -> list[dict]:
 
 
 def split_by_pdb(records: list[dict]) -> tuple[list[dict], list[dict], list[dict]]:
-    """按 PDB ID 切分 train/val/test。
+    """ PDB ID  train/val/test
 
-    中文人话说明：
-    为什么 PDB-level split 比 random sequence split 更严格？
+    :
+     PDB-level split  random sequence split ?
 
-    random sequence split 是把每条 sequence 随机分到 train/val/test。
-    这样可能会出现：
+    random sequence split  sequence  train/val/test
+    :
 
-        同一个 PDB 的 heavy chain 在 train
-        同一个 PDB 的 light chain 在 test
+         PDB  heavy chain  train
+         PDB  light chain  test
 
-    这会让 test set 和 train set 太接近，评估可能虚高。
+     test set  train set ,
 
-    PDB-level split 的规则是：
+    PDB-level split :
 
-        同一个 pdb 的所有 chain 必须只出现在一个 split
+         pdb  chain  split
 
-    这样 test set 更像“模型没见过的新结构来源”，更严格。
+     test set ,
 
-    注意：
-    这里是按 PDB 切分，不是按 label 切分。
-    所以 label 比例可能不会完美 50/50。
-    后面用 check_processed_dataset.py 检查 label distribution。
+    :
+     PDB , label 
+     label  50/50
+     check_processed_dataset.py  label distribution
     """
 
     random.seed(RANDOM_SEED)
@@ -285,11 +285,11 @@ def split_by_pdb(records: list[dict]) -> tuple[list[dict], list[dict], list[dict
 
 
 def save_records(records: list[dict], output_path: Path) -> None:
-    """保存 CSV。
+    """ CSV
 
-    中文人话说明：
-    训练代码只需要 sequence,label。
-    但是我们额外保存 pdb、chain、chain_type，方便检查 data leakage。
+    :
+     sequence,label
+     pdbchainchain_type, data leakage
     """
 
     dataframe = pd.DataFrame(
@@ -300,7 +300,7 @@ def save_records(records: list[dict], output_path: Path) -> None:
 
 
 def make_empty_stats() -> dict:
-    """创建统计计数器。"""
+    """"""
 
     return {
         "pdb_downloaded": 0,
@@ -317,7 +317,7 @@ def make_empty_stats() -> dict:
 
 
 def main() -> None:
-    """脚本主函数：从 SAbDab summary 构建真实 heavy/light 数据集。"""
+    """: SAbDab summary  heavy/light """
 
     args = parse_args()
     max_rows = args.max_rows

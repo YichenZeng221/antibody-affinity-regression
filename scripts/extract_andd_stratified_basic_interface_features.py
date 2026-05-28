@@ -1,17 +1,17 @@
 """Extract a conservative basic interface geometry pilot for ANDD antibody v2.
 
-本脚本只处理 contact audit 中已经证明 chain mapping 不歧义的样本。
-它读取外部 SAbDab raw PDB 文件，计算最基础的抗体-抗原界面几何特征，
-再与已经存在的 test predictions 按 sample_id 合并，用于误差分析。
+ contact audit  chain mapping 
+ SAbDab raw PDB ,-,
+ test predictions  sample_id ,
 
-重要边界：
-- 不训练模型，不修改原始 dataset。
-- 不处理 ambiguous chain mappings，也不猜 chain ID。
-- 暂不计算 CDR-specific contact；那需要先验证 IMGT CDR residue 到结构 residue 的对应关系。
+:
+- , dataset
+-  ambiguous chain mappings, chain ID
+-  CDR-specific contact; IMGT CDR residue  residue 
 
-这里将 contact count 定义为 residue-pair contact count：
-只要一个 antibody residue 与一个 antigen residue 存在任一对非氢原子距离不大于阈值，
-这个 residue pair 就计为一个 contact。这样比 atom-pair count 更容易解释。
+ contact count  residue-pair contact count:
+ antibody residue  antigen residue ,
+ residue pair  contact atom-pair count 
 """
 
 from __future__ import annotations
@@ -59,7 +59,7 @@ def clean_text(value: object) -> str:
 
 
 def parse_chain_ids(value: object) -> list[str]:
-    """Audit 已提供 resolved chain；这里保留多 antigen chains 的兼容性。"""
+    """Audit  resolved chain; antigen chains """
     text = clean_text(value)
     for separator in ("|", ",", ";", "/"):
         text = text.replace(separator, " ")
@@ -73,7 +73,7 @@ def raw_pdb_index() -> dict[str, Path]:
 
 
 def heavy_atoms_by_residue(chain) -> dict[tuple[str, int, str], list[np.ndarray]]:
-    """只保留 amino-acid residue 的非氢原子坐标。"""
+    """ amino-acid residue """
     residues: dict[tuple[str, int, str], list[np.ndarray]] = {}
     for residue in chain:
         if not is_aa(residue, standard=False):
@@ -107,7 +107,7 @@ def minimum_atom_distance(
     if ab_coords.size == 0 or ag_coords.size == 0:
         return float("nan")
     minimum = float("inf")
-    # 分块避免对较大 antigen 一次分配过大的三维矩阵。
+    #  antigen 
     for start in range(0, len(ab_coords), 256):
         chunk = ab_coords[start : start + 256]
         distances = np.linalg.norm(chunk[:, None, :] - ag_coords[None, :, :], axis=2)
@@ -120,17 +120,17 @@ def residue_contacts(
     ag_residues: dict[tuple[str, int, str], list[np.ndarray]],
     cutoff: float,
 ) -> set[tuple[tuple[str, int, str], tuple[str, int, str]]]:
-    """返回 cutoff 范围内接触的 residue-pair set。
+    """ cutoff  residue-pair set
 
-    使用空间索引查询附近原子，而不是逐个 residue pair 扫描，面对较长 antigen
-    时会快很多，contact 的定义保持不变。
+    , residue pair , antigen
+    ,contact 
     """
     contacts: set[tuple[tuple[str, int, str], tuple[str, int, str]]] = set()
     antigen_atoms = []
     antigen_atom_residue: dict[int, tuple[str, int, str]] = {}
     for ag_id, ag_coords_list in ag_residues.items():
         for coord in ag_coords_list:
-            # NeighborSearch 接受具有 get_coord 方法的对象；临时包装坐标即可。
+            # NeighborSearch  get_coord ;
             atom = _CoordinateAtom(coord)
             antigen_atoms.append(atom)
             antigen_atom_residue[id(atom)] = ag_id
@@ -145,7 +145,7 @@ def residue_contacts(
 
 
 class _CoordinateAtom:
-    """供 Bio.PDB.NeighborSearch 使用的最小坐标对象。"""
+    """ Bio.PDB.NeighborSearch """
 
     def __init__(self, coord: np.ndarray) -> None:
         self.coord = coord
@@ -248,7 +248,7 @@ def extract_features(pilot: pd.DataFrame) -> pd.DataFrame:
                     "geometry_extraction_error": "",
                     **geometry,
                 }
-            except Exception as error:  # 单条结构异常不能中断全部 pilot。
+            except Exception as error:  #  pilot
                 cache[key] = {
                     "geometry_extraction_status": "failed",
                     "geometry_extraction_error": str(error),
@@ -450,13 +450,13 @@ def write_report(
         "",
         "## Scope",
         "",
-        "- 本 pilot 只处理 contact availability audit 中 `basic_interface_features_ready_for_extraction=True` "
-        "的无歧义 chain-mapping rows。",
-        "- 没有处理 ambiguous chain mappings，没有猜测 chain ID，没有训练模型或修改 dataset。",
-        "- 结构来源：只读访问 `/Users/yichenzeng/Downloads/all_structures/raw/`。",
-        "- `contact_count_*` 的定义是 antibody-antigen **residue pair** contact count："
-        "任意一对非氢原子距离小于等于 cutoff，即计为一个接触 residue pair。",
-        "- 本轮暂不计算 CDR-specific contacts，因为尚未完成 IMGT CDR residue 到结构 residue 的映射验证。",
+        "-  pilot  contact availability audit  `basic_interface_features_ready_for_extraction=True` "
+        " chain-mapping rows",
+        "-  ambiguous chain mappings, chain ID, dataset",
+        "- : `/Users/yichenzeng/Downloads/all_structures/raw/`",
+        "- `contact_count_*`  antibody-antigen **residue pair** contact count:"
+        " cutoff, residue pair",
+        "-  CDR-specific contacts, IMGT CDR residue  residue ",
         "",
         "## Extraction Result",
         "",
@@ -477,10 +477,10 @@ def write_report(
             "",
             "## Extracted Features",
             "",
-            "- `min_ab_ag_distance`: antibody heavy/light chains 到 antigen chain(s) 的最小非氢原子距离。",
-            "- `contact_count_4A`, `contact_count_5A`, `contact_count_8A`: 不同 cutoff 下的 interface residue-pair 数。",
-            "- `antibody_interface_residue_count_5A`, `antigen_interface_residue_count_5A`: 5 A 内涉及的两侧 residue 数。",
-            "- `heavy_interface_residue_count_5A`, `light_interface_residue_count_5A`: 5 A 内分别来自 heavy/light chain 的 interface residue 数。",
+            "- `min_ab_ag_distance`: antibody heavy/light chains  antigen chain(s) ",
+            "- `contact_count_4A`, `contact_count_5A`, `contact_count_8A`:  cutoff  interface residue-pair ",
+            "- `antibody_interface_residue_count_5A`, `antigen_interface_residue_count_5A`: 5 A  residue ",
+            "- `heavy_interface_residue_count_5A`, `light_interface_residue_count_5A`: 5 A  heavy/light chain  interface residue ",
             "",
             "## Feature vs Target Affinity",
             "",
@@ -490,13 +490,13 @@ def write_report(
     lines.extend(
         [
             "",
-            "相关性是探索性诊断，不代表因果关系；interface 大小和 affinity 也可能受 antigen 类型、"
-            "assay noise、结构构象和 label source 共同影响。",
-            f"- 初步观察：`contact_count_5A` 与 target 只有弱关系（Spearman = "
-            f"{target_contact_spearman:.3f}），`min_ab_ag_distance` 基本无单变量关系 "
-            f"（Spearman = {target_distance_spearman:.3f}）。",
-            f"- Geometry QC 注意：有 **{very_short_distance_rows}** row 的最小距离 `< 1.0 A`；"
-            "该异常短距离应在进入建模前核查结构 alternate locations、链选择或坐标质量。",
+            ",;interface  affinity  antigen "
+            "assay noise label source ",
+            f"- :`contact_count_5A`  target (Spearman = "
+            f"{target_contact_spearman:.3f}),`min_ab_ag_distance`  "
+            f"(Spearman = {target_distance_spearman:.3f})",
+            f"- Geometry QC : **{very_short_distance_rows}** row  `< 1.0 A`;"
+            " alternate locations",
             "",
             "## Feature vs Existing Prediction Error",
             "",
@@ -544,27 +544,27 @@ def write_report(
     lines.extend(
         [
             "",
-            f"- 在这批安全子集里，high-tail 的平均 `contact_count_5A` 为 **{high_contact:.3f}**，"
-            f"low-tail 为 **{low_contact:.3f}**；这是值得验证的模式，但尚不足以单独解释 affinity tail。",
-            "- 特别是 error correlation 仅基于 58 条 test pilot rows，因此不能据此声称 contact "
-            "features 已经解决 regression-to-the-mean。",
+            f"- ,high-tail  `contact_count_5A`  **{high_contact:.3f}**,"
+            f"low-tail  **{low_contact:.3f}**;, affinity tail",
+            "-  error correlation  58  test pilot rows, contact "
+            "features  regression-to-the-mean",
             "",
             "## Should These Features Enter a Next Model?",
             "",
-            "- 这些 features 值得进入下一步 **分析/小型增量 baseline**，因为它们提供了 sequence-only "
-            "模型没有看到的真实界面几何信息，并且能够按 `sample_id` 接到已有 residual。",
-            "- 但这仍是 pilot 子集：只有无歧义 chain mapping 的样本被纳入。若直接训练，必须清楚说明 "
-            "subset selection 会改变 benchmark，并先验证 geometry-error relationship 是否稳定。",
-            "- 推荐下一步先在当前提取成功的 test pilot rows 上解读相关性，再决定是否为 train/val/test "
-            "全部可解析 subset 建独立 contact-feature benchmark。",
+            "-  features  **/ baseline**, sequence-only "
+            ", `sample_id`  residual",
+            "-  pilot : chain mapping , "
+            "subset selection  benchmark, geometry-error relationship ",
+            "-  test pilot rows , train/val/test "
+            " subset  contact-feature benchmark",
             "",
             "## CDR-specific Contacts: Still Missing",
             "",
-            "- CSV 中已有 AbNumber + IMGT 的 CDR sequences；结构中也有 IMGT 文件可供核查。",
-            "- 仍需验证 heavy/light sequence 与结构 residue numbering/alignment 的一一对应，特别是 "
-            "insertion、missing residues、多模型/多复合物链的处理。",
-            "- 在该验证通过前，不生成 `CDR-antigen contact count`、`HCDR3 contact fraction` 或 "
-            "`LCDR3 contact fraction`，以免把错误链或错误 residue 范围作为生物学信号。",
+            "- CSV  AbNumber + IMGT  CDR sequences; IMGT ",
+            "-  heavy/light sequence  residue numbering/alignment , "
+            "insertionmissing residues/",
+            "- , `CDR-antigen contact count``HCDR3 contact fraction`  "
+            "`LCDR3 contact fraction`, residue ",
             "",
             "## Outputs",
             "",

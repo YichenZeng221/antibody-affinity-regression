@@ -1,13 +1,13 @@
-"""ANDD stratified pooled / cross-attention 的 train-vs-eval fit diagnosis。
+"""ANDD stratified pooled / cross-attention  train-vs-eval fit diagnosis
 
-中文说明：
-这个脚本只读取已经训练好的 checkpoint，并对缺少 predictions 的 split 做 inference。
-它不会训练模型，不会改 dataset，也不会覆盖原有 test predictions 或原有实验报告。
+:
+ checkpoint, predictions  split  inference
+, dataset, test predictions 
 
-目标是回答：
-- 模型是否在 train 上也把预测压向平均值？
-- 如果 train 和 test 都压缩，问题是否更像 underfit / representation bottleneck？
-- 简单 sequence length features 与 target / error 是否有明显关系？
+:
+-  train ?
+-  train  test , underfit / representation bottleneck?
+-  sequence length features  target / error ?
 """
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ import torch
 from torch.utils.data import DataLoader
 from transformers import AutoTokenizer
 
-# 只保存 PNG，不尝试弹出窗口；缓存写到临时目录而不是项目目录。
+#  PNG,;
 os.environ.setdefault("XDG_CACHE_HOME", "/private/tmp/seqproft_xdg_cache")
 os.environ.setdefault("MPLCONFIGDIR", "/private/tmp/seqproft_matplotlib_cache")
 os.environ.setdefault("MPLBACKEND", "Agg")
@@ -83,7 +83,7 @@ OPTIONAL_STRUCTURE_FEATURES = ["contact_count", "min_distance", "interface_resid
 
 
 def successful_rows(csv_path: str | Path) -> pd.DataFrame:
-    """应用与模型 Dataset 一致的 CDR 提取成功过滤规则。"""
+    """ Dataset  CDR """
     frame = pd.read_csv(csv_path)
     heavy_ok = frame["heavy_cdr_status"].fillna("").astype(str).str.lower().isin(SUCCESS_STATUS_VALUES)
     light_ok = frame["light_cdr_status"].fillna("").astype(str).str.lower().isin(SUCCESS_STATUS_VALUES)
@@ -91,7 +91,7 @@ def successful_rows(csv_path: str | Path) -> pd.DataFrame:
 
 
 def sequence_length(value: object) -> float:
-    """安全计算 sequence 长度，空值保持 NaN。"""
+    """ sequence , NaN"""
     if pd.isna(value):
         return float("nan")
     text = str(value).strip()
@@ -99,7 +99,7 @@ def sequence_length(value: object) -> float:
 
 
 def add_length_features(frame: pd.DataFrame) -> pd.DataFrame:
-    """补齐本次诊断需要的 CDR / antigen 长度特征。"""
+    """ CDR / antigen """
     for field in ["HCDR3", "LCDR3"]:
         frame[f"{field}_len"] = frame[field].map(sequence_length)
     frame["total_CDR_len"] = frame[CDR_FIELDS].apply(
@@ -111,12 +111,12 @@ def add_length_features(frame: pd.DataFrame) -> pd.DataFrame:
 
 
 def model_output_path(model_name: str, split: str) -> Path:
-    """新生成的 supporting predictions 均存进独立诊断目录。"""
+    """ supporting predictions """
     return PREDICTION_DIR / f"{model_name}_{split}_predictions.csv"
 
 
 def existing_test_path(model_name: str) -> Path:
-    """原有 test predictions 只读取，不覆盖。"""
+    """ test predictions ,"""
     if model_name == "all_cdr_pooled":
         return (
             ROOT
@@ -127,7 +127,7 @@ def existing_test_path(model_name: str) -> Path:
 
 
 def prediction_frame(metadata: pd.DataFrame, true_values: list[float], pred_values: list[float]) -> pd.DataFrame:
-    """把 inference 结果与可分析 metadata 合并。"""
+    """ inference  metadata """
     columns = [
         "sample_id",
         "candidate_id",
@@ -146,7 +146,7 @@ def prediction_frame(metadata: pd.DataFrame, true_values: list[float], pred_valu
 
 
 def run_pooled_inference(config: dict, split: str, tokenizer, device: torch.device, model) -> pd.DataFrame:
-    """用 pooled checkpoint 对一个 split 仅做 inference。"""
+    """ pooled checkpoint  split  inference"""
     dataset = CDRAwareAffinityDataset(
         csv_path=config[f"{split}_csv"],
         tokenizer=tokenizer,
@@ -161,7 +161,7 @@ def run_pooled_inference(config: dict, split: str, tokenizer, device: torch.devi
 
 
 def run_cross_inference(config: dict, split: str, tokenizer, device: torch.device, model) -> pd.DataFrame:
-    """用 cross-attention checkpoint 对一个 split 仅做 inference。"""
+    """ cross-attention checkpoint  split  inference"""
     dataset = CrossAttentionAffinityDataset(
         csv_path=config[f"{split}_csv"],
         tokenizer=tokenizer,
@@ -169,14 +169,14 @@ def run_cross_inference(config: dict, split: str, tokenizer, device: torch.devic
         cdr_max_length=int(config.get("cdr_max_length", 64)),
         target_column=config["target_column"],
     )
-    # Cross-attention 保留 token matrices；诊断 inference 使用较小 batch 控制内存。
+    # Cross-attention  token matrices; inference  batch 
     loader = DataLoader(dataset, batch_size=4, shuffle=False)
     _, true_values, pred_values = evaluate_cross_attention_affinity_model(model, loader, device)
     return prediction_frame(dataset.data, true_values, pred_values)
 
 
 def load_existing_test_predictions(model_name: str, split_frame: pd.DataFrame) -> pd.DataFrame:
-    """读取既有 test output 并补上分析需要的 length features。"""
+    """ test output  length features"""
     predictions = pd.read_csv(existing_test_path(model_name))
     feature_sequence_columns = [*CDR_FIELDS, "antigen_sequence"]
     keep_columns = [
@@ -207,7 +207,7 @@ def load_existing_test_predictions(model_name: str, split_frame: pd.DataFrame) -
 
 
 def generate_missing_predictions() -> tuple[dict[tuple[str, str], pd.DataFrame], str]:
-    """加载两个 checkpoint，仅生成 train/val 的新 predictions，复用现有 test CSV。"""
+    """ checkpoint, train/val  predictions, test CSV"""
     pooled_config = load_config(str(POOLED_CONFIG_PATH))
     cross_config = load_config(str(CROSS_CONFIG_PATH))
     PREDICTION_DIR.mkdir(parents=True, exist_ok=True)
@@ -268,7 +268,7 @@ def generate_missing_predictions() -> tuple[dict[tuple[str, str], pd.DataFrame],
 
 
 def correlation(left: pd.Series, right: pd.Series, method: str) -> float:
-    """安全计算相关系数；常数或缺失不足时返回 NaN。"""
+    """; NaN"""
     valid = pd.concat([left, right], axis=1).dropna()
     if len(valid) < 3 or valid.iloc[:, 0].nunique() <= 1 or valid.iloc[:, 1].nunique() <= 1:
         return float("nan")
@@ -276,7 +276,7 @@ def correlation(left: pd.Series, right: pd.Series, method: str) -> float:
 
 
 def metric_row(model_name: str, split: str, predictions: pd.DataFrame, train_target: pd.Series) -> dict[str, object]:
-    """计算 train-defined bins/tails 下的一组模型指标。"""
+    """ train-defined bins/tails """
     true = predictions[TRUE_COLUMN].astype(float)
     pred = predictions[PRED_COLUMN].astype(float)
     errors = pred - true
@@ -323,7 +323,7 @@ def metric_row(model_name: str, split: str, predictions: pd.DataFrame, train_tar
 def build_feature_correlations(
     predictions: dict[tuple[str, str], pd.DataFrame],
 ) -> tuple[pd.DataFrame, list[str]]:
-    """计算 target/error 与可用特征的关系；不存在的结构字段明确记录 missing。"""
+    """ target/error ; missing"""
     rows: list[dict[str, object]] = []
     missing_features: list[str] = []
     for split in SPLITS:
@@ -398,7 +398,7 @@ def draw_split_scatter(
     y_kind: str,
     output_path: Path,
 ) -> None:
-    """为 train/val/test 分面绘制两个模型散点和趋势线。"""
+    """ train/val/test """
     fig, axes = plt.subplots(1, 3, figsize=(18, 5.7), constrained_layout=True)
     all_true = pd.concat([predictions[(model, split)][TRUE_COLUMN] for model in MODELS for split in SPLITS])
     if y_kind == "prediction":
@@ -475,14 +475,14 @@ def draw_split_scatter(
 
 
 def format_value(value: object) -> str:
-    """Markdown 中统一显示数值。"""
+    """Markdown """
     if pd.isna(value):
         return "NA"
     return f"{float(value):.4f}"
 
 
 def metrics_markdown(metrics: pd.DataFrame) -> str:
-    """把重点 metrics 转成 Markdown 表，不增加外部依赖。"""
+    """ metrics  Markdown ,"""
     columns = [
         "model", "split", "rows", "MAE", "RMSE", "Spearman", "pred_std_true_std",
         "error_vs_true_Pearson", "low_MAE", "mid_MAE", "high_MAE",
@@ -505,7 +505,7 @@ def metrics_markdown(metrics: pd.DataFrame) -> str:
 
 
 def strongest_available_relationships(correlations: pd.DataFrame, analysis: str, model: str | None = None) -> pd.DataFrame:
-    """按绝对 Spearman 值返回可用 simple-feature relationships。"""
+    """ Spearman  simple-feature relationships"""
     frame = correlations[
         (correlations["analysis"] == analysis)
         & (correlations["status"] == "available")
@@ -523,7 +523,7 @@ def write_report(
     missing_features: list[str],
     device_text: str,
 ) -> None:
-    """汇总 train-vs-test 证据并给出保守结论。"""
+    """ train-vs-test """
     pooled_train = metrics[(metrics["model"] == "all_cdr_pooled") & (metrics["split"] == "train")].iloc[0]
     pooled_test = metrics[(metrics["model"] == "all_cdr_pooled") & (metrics["split"] == "test")].iloc[0]
     cross_train = metrics[(metrics["model"] == "all_cdr_cross_attention") & (metrics["split"] == "train")].iloc[0]
@@ -537,14 +537,14 @@ def write_report(
     )
     if compression_on_train:
         fit_conclusion = (
-            "两个模型在 train split 上已经出现明显 prediction compression 和负向 residual trend，"
-            "因此当前证据更像 underfit / representation 或 objective bottleneck，而不是典型的"
-            "“train 拟合很好、只在 validation/test 崩掉”的 overfit。"
+            " train split  prediction compression  residual trend,"
+            " underfit / representation  objective bottleneck,"
+            "train  validation/test  overfit"
         )
     else:
         fit_conclusion = (
-            "train 与 evaluation split 的压缩程度不完全一致，不能仅凭本次图判断瓶颈类型；"
-            "需要结合 metrics 表继续判断是否存在 overfit。"
+            "train  evaluation split ,;"
+            " metrics  overfit"
         )
 
     target_top = strongest_available_relationships(correlations, "target_vs_feature")
@@ -557,7 +557,7 @@ def write_report(
 
     def relationship_lines(frame: pd.DataFrame) -> str:
         if frame.empty:
-            return "- 没有可计算的 available sequence feature correlation。"
+            return "-  available sequence feature correlation"
         lines = []
         for _, row in frame.iterrows():
             lines.append(
@@ -569,39 +569,39 @@ def write_report(
     missing_text = ", ".join(f"`{feature}`" for feature in missing_features) or "none"
     report = f"""# ANDD Stratified Train vs Eval/Test Model Fit Diagnosis
 
-## 目的与范围
+## 
 
-本分析仅使用已有 checkpoint 进行 inference，不进行新训练，也不修改 dataset 或原有结果文件。
+ checkpoint  inference,, dataset 
 
 - Dataset: `data/processed_affinity/expanded_affinity_antibody_v2_stratified/`
-- Models: `all_cdr_pooled` 与 `all_cdr_cross_attention`
+- Models: `all_cdr_pooled`  `all_cdr_cross_attention`
 - Inference device in this run: `{device_text}`
 - Existing test predictions were read from original output paths; missing train/val predictions were saved only under `fit_diagnosis/predictions/`.
-- Low/mid/high bins 与 P10/P90 tails 全部使用 **train target distribution** 定义。
+- Low/mid/high bins  P10/P90 tails  **train target distribution** 
 
 ## Metrics By Model And Split
 
 {metrics_markdown(metrics)}
 
-## 1. Train 上是否也有 Regression-To-The-Mean？
+## 1. Train  Regression-To-The-Mean?
 
-- Pooled train: `pred_std / true_std={pooled_train['pred_std_true_std']:.4f}`, `error_vs_true_Pearson={pooled_train['error_vs_true_Pearson']:.4f}`。
-- Cross-attention train: `pred_std / true_std={cross_train['pred_std_true_std']:.4f}`, `error_vs_true_Pearson={cross_train['error_vs_true_Pearson']:.4f}`。
-- Pooled test: `pred_std / true_std={pooled_test['pred_std_true_std']:.4f}`, `error_vs_true_Pearson={pooled_test['error_vs_true_Pearson']:.4f}`。
-- Cross-attention test: `pred_std / true_std={cross_test['pred_std_true_std']:.4f}`, `error_vs_true_Pearson={cross_test['error_vs_true_Pearson']:.4f}`。
+- Pooled train: `pred_std / true_std={pooled_train['pred_std_true_std']:.4f}`, `error_vs_true_Pearson={pooled_train['error_vs_true_Pearson']:.4f}`
+- Cross-attention train: `pred_std / true_std={cross_train['pred_std_true_std']:.4f}`, `error_vs_true_Pearson={cross_train['error_vs_true_Pearson']:.4f}`
+- Pooled test: `pred_std / true_std={pooled_test['pred_std_true_std']:.4f}`, `error_vs_true_Pearson={pooled_test['error_vs_true_Pearson']:.4f}`
+- Cross-attention test: `pred_std / true_std={cross_test['pred_std_true_std']:.4f}`, `error_vs_true_Pearson={cross_test['error_vs_true_Pearson']:.4f}`
 
 {fit_conclusion}
 
-## 2. Underfit、Overfit 还是 Representation Bottleneck？
+## 2. UnderfitOverfit  Representation Bottleneck?
 
-- 如果 train 的 MAE 很低且 prediction spread 健康，而 val/test 才严重压缩，才更符合 overfit。
-- 如果 train 自己也有小 `pred_std / true_std` 和强负 `error_vs_true_Pearson`，说明模型从训练数据开始就没有充分表示 target extremes。
-- 本次结果应优先解读为：`regression-to-the-mean / representation-or-objective bottleneck`；这比“单纯 overfit”更符合观察。
-- Cross-attention 与 pooled 的比较仍然说明 learnable interaction 有帮助，但未完全解决 calibration/tail error。
+-  train  MAE  prediction spread , val/test , overfit
+-  train  `pred_std / true_std`  `error_vs_true_Pearson`, target extremes
+- :`regression-to-the-mean / representation-or-objective bottleneck`; overfit
+- Cross-attention  pooled  learnable interaction , calibration/tail error
 
 ## 3. Simple Sequence Feature Relationships
 
-### Target vs sequence features：绝对 Spearman 较大的 available relationships
+### Target vs sequence features: Spearman  available relationships
 
 {relationship_lines(target_top)}
 
@@ -613,23 +613,23 @@ def write_report(
 
 {relationship_lines(cross_error_top)}
 
-这些是简单相关分析，不等于因果关系；尤其 antigen groups 和 target 来源可能同时影响这些数字。
+,; antigen groups  target 
 
 ## 4. Contact / Structure Feature Availability
 
-本次 stratified dataset 中未发现以下 structure/contact feature columns，因此未进行相应 correlation analysis：
+ stratified dataset  structure/contact feature columns, correlation analysis:
 
 - {missing_text}
 
-这不是把它们视为无关，而是说明当前 dataset 尚未提供这些信息。
+, dataset 
 
-## 5. 下一步建议
+## 5. 
 
-1. **Multi-seed / checkpoint policy**：当前仍是 single-seed baseline，应先验证 compression 与 cross-attention 改善是否稳定。
-2. **Tail-aware training 或 calibration**：因为主要错误仍集中在 affinity extremes，可比较 tail-aware weighting、ranking/calibration objective 与按 validation tail 指标选 checkpoint。
-3. **Structure/contact-aware features**：如果 train 上也明显压缩，继续只增加 pooled sequence 变体的收益可能有限；CDR-antigen interface/contact information 是更有生物意义的下一步。
+1. **Multi-seed / checkpoint policy**: single-seed baseline, compression  cross-attention 
+2. **Tail-aware training  calibration**: affinity extremes, tail-aware weightingranking/calibration objective  validation tail  checkpoint
+3. **Structure/contact-aware features**: train , pooled sequence ;CDR-antigen interface/contact information 
 
-## 输出文件
+## 
 
 - Metrics: `outputs/andd_antibody_v2_stratified/fit_diagnosis/fit_metrics_by_split.csv`
 - Feature correlations: `outputs/andd_antibody_v2_stratified/fit_diagnosis/feature_correlation_summary.csv`

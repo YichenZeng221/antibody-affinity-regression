@@ -1,15 +1,15 @@
 """Inspect the TDC Protein_SAbDab antibody-antigen affinity dataset.
 
-中文人话说明：
-这个脚本只做数据探索，不训练模型，也不合并到现有 clean_v2。
+:
+,, clean_v2
 
-目标：
-1. 从 TDC 读取 Protein_SAbDab antibody-antigen affinity dataset。
-2. 看列名、样本数、target 格式、sequence 长度。
-3. 检查默认 random split 是否有 antibody / antigen / pair overlap。
-4. 保存 TDC 原始 split 和 inspection_report.json，方便之后再决定要不要接入项目。
+:
+1.  TDC  Protein_SAbDab antibody-antigen affinity dataset
+2. target sequence 
+3.  random split  antibody / antigen / pair overlap
+4.  TDC  split  inspection_report.json,
 
-如果你的环境没有安装 PyTDC，运行时会提示：
+ PyTDC,:
     python -m pip install PyTDC
 """
 
@@ -68,15 +68,15 @@ def find_target_column(dataframe: pd.DataFrame) -> str | None:
 def find_sequence_column(dataframe: pd.DataFrame, exact_candidates: list[str], keywords: list[str]) -> str | None:
     """Find a likely sequence column.
 
-    中文人话说明：
-    TDC 这个数据里有：
-    - Antibody_ID：PDB ID，不是序列
-    - Antibody：真正的 heavy/light sequence
-    - Antigen_ID：抗原名字/ID，不是序列
-    - Antigen：真正的 antigen sequence
+    :
+    TDC :
+    - Antibody_ID:PDB ID,
+    - Antibody: heavy/light sequence
+    - Antigen_ID:/ID,
+    - Antigen: antigen sequence
 
-    所以我们必须优先找精确列名 Antibody / Antigen，
-    不能简单看到 "antibody" 就选 Antibody_ID。
+     Antibody / Antigen,
+     "antibody"  Antibody_ID
     """
 
     for column_name in exact_candidates:

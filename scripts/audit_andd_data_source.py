@@ -1,11 +1,11 @@
 """Audit ANDD as a possible data expansion source.
 
-中文人话说明：
-这个脚本只做数据源审计，不创建训练集，不训练模型，也不修改现有 unified dataset。
+:
+,,, unified dataset
 
-为什么不用 pandas.read_excel？
-当前项目 .venv 里没有 openpyxl。为了避免临时安装依赖，这里用 Python 标准库
-直接读取 xlsx 内部的 XML 表格。这样 audit 可复现，也不会改变环境。
+ pandas.read_excel?
+ .venv  openpyxl, Python 
+ xlsx  XML  audit ,
 """
 
 from __future__ import annotations
@@ -306,7 +306,7 @@ def main() -> None:
     dictionary = read_data_dictionary(DATA_DICTIONARY)
     columns = list(andd.columns)
     kd_column = find_column(columns, "Affinity_Kd")
-    delta_column = find_column(columns, "∆Gbinding") or find_column(columns, "ΔGbinding")
+    delta_column = find_column(columns, "Gbinding") or find_column(columns, "Gbinding")
     if kd_column is None:
         raise ValueError("Could not find Affinity_Kd column in ANDD.")
 

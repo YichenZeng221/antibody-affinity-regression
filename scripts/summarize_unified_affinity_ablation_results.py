@@ -1,12 +1,12 @@
 """Summarize finished unified affinity ablation runs without training.
 
-中文人话说明：
-你可以先在本地 Terminal 手动训练、手动 evaluate、手动跑 baseline。
-等 checkpoint 和 prediction CSV 都准备好后，再运行这个脚本生成：
+:
+ Terminal  evaluate baseline
+ checkpoint  prediction CSV ,:
     outputs/ablation/unified_affinity_dataset_v1/ablation_results.csv
     outputs/ablation/unified_affinity_dataset_v1/ablation_report.md
 
-这个脚本只调用 runner 里已有的汇总函数，不会启动训练或 evaluation。
+ runner , evaluation
 """
 
 from __future__ import annotations

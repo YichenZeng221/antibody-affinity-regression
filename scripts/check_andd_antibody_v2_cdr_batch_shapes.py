@@ -1,14 +1,14 @@
 """Single-batch dry-run for ANDD antibody v2 all-CDR pooled baseline.
 
-中文人话说明：
-这个脚本只检查一批数据能不能通过 Dataset + Model forward。
-它不会训练模型，也不会保存 checkpoint。
+:
+ Dataset + Model forward
+, checkpoint
 
-用途：
-- 确认 CDR extraction 后 CSV 字段齐全。
-- 确认 tokenizer / tensor shape 正常。
-- 确认模型 prediction shape 是 [batch_size]。
-- 确认 loss 可以计算。
+:
+-  CDR extraction  CSV 
+-  tokenizer / tensor shape 
+-  prediction shape  [batch_size]
+-  loss 
 """
 
 from __future__ import annotations

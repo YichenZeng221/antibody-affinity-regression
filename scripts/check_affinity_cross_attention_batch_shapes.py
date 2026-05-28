@@ -1,15 +1,15 @@
 """Dry-run one all-CDR cross-attention batch without training.
 
-中文人话说明：
-这个脚本只做 forward sanity check，不保存 checkpoint，不跑完整 evaluation。
-它会打印：
-- 六条 CDR 各自的 token matrix shape
-- concat 后 all-CDR token shape
+:
+ forward sanity check, checkpoint, evaluation
+:
+-  CDR  token matrix shape
+- concat  all-CDR token shape
 - antigen token shape
 - cross-attention output shape
 - pooled feature shape
 - prediction shape
-- MSE loss 是否能正常算出来
+- MSE loss 
 """
 
 from __future__ import annotations

@@ -1,29 +1,29 @@
 """Check the processed train/val/test CSV files.
 
-中文人话说明：
-这个脚本不训练模型，也不下载 PDB。
-它只检查已经生成好的 CSV 数据集是否看起来正常。
+:
+, PDB
+ CSV 
 
-现在我们的 CSV 应该包含：
+ CSV :
     sequence,label,pdb,chain,chain_type
 
-标签含义：
-    label = 0 表示 light chain
-    label = 1 表示 heavy chain
+:
+    label = 0  light chain
+    label = 1  heavy chain
 
-为什么要检查 label 分布？
-如果某个 split 里 heavy/light 极度不平衡，accuracy 可能不好解释。
+ label ?
+ split  heavy/light ,accuracy 
 
-为什么要检查 PDB overlap？
-我们现在使用 PDB-level split。
-同一个 PDB 的所有 chain 应该只出现在 train/val/test 的其中一个 split。
-如果 train 和 test 共享 PDB，说明可能有 data leakage。
+ PDB overlap?
+ PDB-level split
+ PDB  chain  train/val/test  split
+ train  test  PDB, data leakage
 
-为什么要检查重复 sequence？
-即使 PDB 不重复，也可能出现完全相同的 amino acid sequence。
-如果完全相同的 sequence 同时出现在 train/test，评估也可能偏乐观。
+ sequence?
+ PDB , amino acid sequence
+ sequence  train/test,
 
-运行命令：
+:
     python scripts/check_processed_dataset.py
 """
 
@@ -37,7 +37,7 @@ SPLITS = ["train", "val", "test"]
 
 
 def load_split(split_name: str) -> pd.DataFrame:
-    """读取一个 split 的 CSV。"""
+    """ split  CSV"""
 
     csv_path = PROCESSED_DIR / f"{split_name}.csv"
 
@@ -61,7 +61,7 @@ def load_split(split_name: str) -> pd.DataFrame:
 
 
 def print_split_summary(split_name: str, dataframe: pd.DataFrame) -> None:
-    """打印单个 split 的基本统计。"""
+    """ split """
 
     print("=" * 80)
     print(f"Split: {split_name}")
@@ -86,11 +86,11 @@ def print_split_summary(split_name: str, dataframe: pd.DataFrame) -> None:
 
 
 def print_overlap_check(split_dataframes: dict[str, pd.DataFrame], column_name: str) -> None:
-    """检查 train/val/test 之间某一列是否有重叠。
+    """ train/val/test 
 
-    column_name 可以是：
-    - pdb：检查是否共享 PDB
-    - sequence：检查是否共享完全相同的 amino acid sequence
+    column_name :
+    - pdb: PDB
+    - sequence: amino acid sequence
     """
 
     print("=" * 80)
@@ -120,7 +120,7 @@ def print_overlap_check(split_dataframes: dict[str, pd.DataFrame], column_name: 
 
 
 def main() -> None:
-    """检查 train/val/test 三个 CSV。"""
+    """ train/val/test  CSV"""
 
     split_dataframes = {}
 

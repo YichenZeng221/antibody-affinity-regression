@@ -1,12 +1,12 @@
 """Analyze affinity regression dataset and prediction behavior.
 
-中文人话说明：
-这个脚本不训练模型，也不改数据。
-它帮助我们 debug：
+:
+,
+ debug:
 
-1. 数据分布是不是奇怪？
-2. train/test 是否有 sequence overlap？
-3. 模型预测是不是塌缩到接近平均值？
+1. ?
+2. train/test  sequence overlap?
+3. ?
 """
 
 from pathlib import Path
@@ -59,9 +59,9 @@ def overlap_count(first: pd.DataFrame, second: pd.DataFrame, column_name: str) -
 def make_pair_key(dataframe: pd.DataFrame, columns: list[str]) -> pd.Series:
     """Create one text key from several columns.
 
-    中文人话说明：
-    有些泄漏不是单独 heavy_sequence 重复，而是 heavy+light 这个组合重复。
-    把多列拼成一个 key 后，就可以像检查普通字符串一样检查 overlap。
+    :
+     heavy_sequence , heavy+light 
+     key , overlap
     """
 
     return dataframe[columns].astype(str).agg("||".join, axis=1)
@@ -78,10 +78,10 @@ def overlap_count_for_columns(first: pd.DataFrame, second: pd.DataFrame, columns
 def compute_prediction_metrics(dataframe: pd.DataFrame) -> dict:
     """Compute MAE/RMSE/fold_error for a prediction dataframe slice.
 
-    中文人话说明：
-    这个函数常用于“分组看错误”：
-    比如 SPR vs ITC、protein vs peptide。
-    如果某一组错误特别大，就说明模型可能对那类数据学不好。
+    :
+    :
+     SPR vs ITCprotein vs peptide
+    ,
     """
 
     if len(dataframe) == 0:
@@ -165,10 +165,10 @@ def print_split_summary(split_name: str, dataframe: pd.DataFrame, target_column:
 def print_split_overlap_check(train: pd.DataFrame, test: pd.DataFrame) -> None:
     """Print exact overlap between train and test.
 
-    中文人话说明：
-    PDB-level split 只能保证同一个 pdb 不跨 split。
-    但是不同 PDB 里仍可能出现同一条 antibody 或 antigen sequence。
-    如果 train/test 有重复 sequence，模型评估就会变得不那么严格。
+    :
+    PDB-level split  pdb  split
+     PDB  antibody  antigen sequence
+     train/test  sequence,
     """
 
     print("=" * 80)
@@ -194,9 +194,9 @@ def print_split_overlap_check(train: pd.DataFrame, test: pd.DataFrame) -> None:
 def print_duplicate_sample_check(all_data: pd.DataFrame, target_column: str) -> None:
     """Print repeated PDB and repeated sequence-combination checks.
 
-    重复 heavy+light+antigen triplet 表示模型看到的三条输入序列完全一样。
-    如果重复很多，表面样本数会比“真正独立的信息量”更大。
-    如果重复 triplet 的 target 还不一致，那就是更严重的 label conflict。
+     heavy+light+antigen triplet 
+    ,
+     triplet  target , label conflict
     """
 
     print("=" * 80)
@@ -255,8 +255,8 @@ def print_duplicate_sample_check(all_data: pd.DataFrame, target_column: str) -> 
 def print_affinity_method_check(all_data: pd.DataFrame, predictions: pd.DataFrame | None, target_column: str) -> None:
     """Print target and prediction stats by affinity_method.
 
-    不同实验方法，比如 SPR / ITC，测出来的 affinity 可能有系统差异。
-    如果混在一起训练，模型可能会学到很多 assay noise，而不是 sequence signal。
+    , SPR / ITC, affinity 
+    , assay noise, sequence signal
     """
 
     print("=" * 80)
@@ -289,8 +289,8 @@ def print_affinity_method_check(all_data: pd.DataFrame, predictions: pd.DataFram
 def print_antigen_type_check(all_data: pd.DataFrame, predictions: pd.DataFrame | None, target_column: str) -> None:
     """Print target and prediction stats by antigen_type.
 
-    protein、peptide、protein | protein 的难度可能不同。
-    分开看可以发现：是不是某一类 antigen 特别拖累整体指标。
+    proteinpeptideprotein | protein 
+    : antigen 
     """
 
     print("=" * 80)
@@ -325,8 +325,8 @@ def print_extreme_target_check(
 ) -> None:
     """Print very low / very high target checks.
 
-    如果低 affinity / 高 affinity 的极端样本很少，
-    模型容易学成“猜平均值”，因为猜平均值在大多数中间样本上不会太离谱。
+     affinity /  affinity ,
+    ,
     """
 
     print("=" * 80)
@@ -376,8 +376,8 @@ def print_truncation_check(
 ) -> None:
     """Print how often sequences are longer than tokenizer max_length.
 
-    truncation 表示序列超过 max_length 的部分会被切掉。
-    如果 antigen 很长，切掉的信息可能刚好是 binding 相关区域。
+    truncation  max_length 
+     antigen , binding 
     """
 
     print("=" * 80)
@@ -449,10 +449,10 @@ def analyze_predictions(predictions_path: Path, train_target_mean: float) -> Non
 def load_predictions_with_metadata(predictions_path: Path, test: pd.DataFrame) -> pd.DataFrame | None:
     """Load predictions and attach test-set metadata.
 
-    中文人话说明：
-    predictions CSV 主要存预测值。
-    affinity_method / antigen_type 这些分组信息在 test.csv 里。
-    所以这里用 sample_id 把它们合并起来，方便做分组误差分析。
+    :
+    predictions CSV 
+    affinity_method / antigen_type  test.csv 
+     sample_id ,
     """
 
     if not predictions_path.exists():

@@ -1,11 +1,11 @@
-"""诊断 ANDD antibody v2 的 target distribution，不训练模型。
+""" ANDD antibody v2  target distribution,
 
-中文人话说明：
-affinity regression 的 label 是 `neg_log10_affinity_candidate`。
-如果训练数据几乎都集中在中间范围，模型容易学成“猜中间值”；
-如果 train/val/test 分布差异很大，测试表现也可能被 split 影响。
+:
+affinity regression  label  `neg_log10_affinity_candidate`
+,;
+ train/val/test , split 
 
-本脚本只读取已经存在的 CSV，并输出统计报告和图片，不修改 dataset。
+ CSV,, dataset
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-# 无图形界面的终端中只保存 PNG，不弹窗口。
+#  PNG,
 ROOT = Path(__file__).resolve().parents[1]
 os.environ.setdefault("MPLCONFIGDIR", str(ROOT / ".matplotlib_cache"))
 import matplotlib  # noqa: E402
@@ -36,7 +36,7 @@ COLORS = {"train": "#1f77b4", "val": "#ff7f0e", "test": "#2ca02c"}
 
 
 def load_splits() -> dict[str, pd.DataFrame]:
-    """读取三个 split，并确认 regression target 可以用于统计。"""
+    """ split, regression target """
 
     frames: dict[str, pd.DataFrame] = {}
     for split in SPLITS:
@@ -55,7 +55,7 @@ def load_splits() -> dict[str, pd.DataFrame]:
 
 
 def summarize_targets(frames: dict[str, pd.DataFrame]) -> tuple[pd.DataFrame, dict[str, dict]]:
-    """计算每个 split 的 count / mean / std / 范围和 quantiles。"""
+    """ split  count / mean / std /  quantiles"""
 
     rows: list[dict] = []
     json_summary: dict[str, dict] = {}
@@ -78,7 +78,7 @@ def summarize_targets(frames: dict[str, pd.DataFrame]) -> tuple[pd.DataFrame, di
 
 
 def assign_train_tertile_bin(target: pd.Series, low_edge: float, high_edge: float) -> pd.Series:
-    """使用只从 train 学到的阈值给所有 split 分 bin，避免偷看 test。"""
+    """ train  split  bin, test"""
 
     return pd.cut(
         target,
@@ -92,7 +92,7 @@ def assign_train_tertile_bin(target: pd.Series, low_edge: float, high_edge: floa
 def summarize_train_bins(
     frames: dict[str, pd.DataFrame],
 ) -> tuple[pd.DataFrame, dict[str, dict], float, float]:
-    """按训练集三分位阈值统计三个 split 的 low/mid/high 比例。"""
+    """ split  low/mid/high """
 
     train_target = frames["train"][TARGET_COLUMN]
     low_edge = float(train_target.quantile(1 / 3))
@@ -122,7 +122,7 @@ def summarize_train_bins(
 
 
 def summarize_extreme_tails(frames: dict[str, pd.DataFrame]) -> tuple[pd.DataFrame, float, float]:
-    """额外统计 train 外侧 10% 阈值，用来区分 tertile 与真正少量 extreme tails。"""
+    """ train  10% , tertile  extreme tails"""
 
     lower_edge = float(frames["train"][TARGET_COLUMN].quantile(0.10))
     upper_edge = float(frames["train"][TARGET_COLUMN].quantile(0.90))
@@ -153,7 +153,7 @@ def summarize_extreme_tails(frames: dict[str, pd.DataFrame]) -> tuple[pd.DataFra
 
 
 def plot_target_histogram(frames: dict[str, pd.DataFrame], output_path: Path) -> None:
-    """用共同的 bin edges 比较 train/val/test target 分布。"""
+    """ bin edges  train/val/test target """
 
     all_targets = pd.concat([frames[split][TARGET_COLUMN] for split in SPLITS], ignore_index=True)
     global_min = float(all_targets.min())
@@ -170,7 +170,7 @@ def plot_target_histogram(frames: dict[str, pd.DataFrame], output_path: Path) ->
             color=COLORS[split],
             label=f"{split} (n={len(frames[split])})",
         )
-    # 比较三个 split 时必须共用同一套 bin edges，否则柱子的范围不同会误导比较。
+    #  split  bin edges,
     plt.xlabel("neg_log10_affinity_candidate")
     plt.ylabel("Density")
     plt.title("ANDD antibody v2 target distribution (shared histogram bins)")
@@ -181,7 +181,7 @@ def plot_target_histogram(frames: dict[str, pd.DataFrame], output_path: Path) ->
 
 
 def markdown_table(frame: pd.DataFrame, float_digits: int = 4) -> str:
-    """生成不依赖额外 Markdown package 的简单表格。"""
+    """ Markdown package """
 
     display = frame.copy()
     for column in display.select_dtypes(include=["float"]).columns:
@@ -205,7 +205,7 @@ def write_report(
     lower_tail_edge: float,
     upper_tail_edge: float,
 ) -> None:
-    """把统计结果和结论写成便于复核的 Markdown 报告。"""
+    """ Markdown """
 
     bin_display = bin_summary.copy()
     bin_display["proportion"] = bin_display["proportion"] * 100
@@ -223,9 +223,9 @@ def write_report(
         "",
         "## Scope",
         "",
-        "- 本分析只读取 CDR-annotated train/val/test CSV；没有训练模型，也没有修改数据。",
-        f"- Target column: `{TARGET_COLUMN}`。",
-        "- 目的：检查 label 分布是否能解释已观察到的 regression-to-the-mean。",
+        "-  CDR-annotated train/val/test CSV;,",
+        f"- Target column: `{TARGET_COLUMN}`",
+        "- : label  regression-to-the-mean",
         "",
         "## 1. Target Summary",
         "",
@@ -233,15 +233,15 @@ def write_report(
         "",
         "## 2. Quantile / Range Interpretation",
         "",
-        f"- Train target 范围为 `{target_summary.loc[target_summary['split'] == 'train', 'min'].iloc[0]:.4f}` 到 "
-        f"`{target_summary.loc[target_summary['split'] == 'train', 'max'].iloc[0]:.4f}`；"
-        f"test 范围为 `{target_summary.loc[target_summary['split'] == 'test', 'min'].iloc[0]:.4f}` 到 "
-        f"`{target_summary.loc[target_summary['split'] == 'test', 'max'].iloc[0]:.4f}`。",
-        "- Train 中存在比 val/test 更高的少量 high-target tail，因此总体范围较宽。",
+        f"- Train target  `{target_summary.loc[target_summary['split'] == 'train', 'min'].iloc[0]:.4f}`  "
+        f"`{target_summary.loc[target_summary['split'] == 'train', 'max'].iloc[0]:.4f}`;"
+        f"test  `{target_summary.loc[target_summary['split'] == 'test', 'min'].iloc[0]:.4f}`  "
+        f"`{target_summary.loc[target_summary['split'] == 'test', 'max'].iloc[0]:.4f}`",
+        "- Train  val/test  high-target tail,",
         "",
         "## 3. Low / Mid / High Bins Defined From Train Tertiles",
         "",
-        "这里用 train 的三分位阈值定义所有 split 的区间；test 没有参与阈值选择：",
+        " train  split ;test :",
         "",
         f"- `low_target`: target <= `{low_edge:.4f}`",
         f"- `mid_target`: `{low_edge:.4f}` < target <= `{high_edge:.4f}`",
@@ -249,27 +249,27 @@ def write_report(
         "",
         markdown_table(bin_display),
         "",
-        "重要解释：因为阈值就是从 train tertiles 定义的，train 的三档数量本来就会被切成接近三等份。"
-        "因此这个表适合检查 val/test 是否发生 target distribution shift，不能用来证明训练集中真正的极端样本很多。",
+        ": train tertiles ,train "
+        " val/test  target distribution shift,",
         "",
         "## 4. Extreme Tail Context",
         "",
-        f"作为补充，下面用 train 的 P10 (`{lower_tail_edge:.4f}`) 与 P90 (`{upper_tail_edge:.4f}`) 阈值统计外侧尾部样本：",
+        f", train  P10 (`{lower_tail_edge:.4f}`)  P90 (`{upper_tail_edge:.4f}`) :",
         "",
         markdown_table(tail_display),
         "",
         "## 5. Does Target Imbalance Explain Regression-To-The-Mean?",
         "",
-        f"- 在 tertile 层面，train 的 low/high 各约 `{low_pct:.1f}%` / `{high_pct:.1f}%`，并没有明显少于 mid。",
-        "- val/test 的 low/mid/high 比例也可与 train 直接比较；若差异不大，不能把 prediction range 压缩主要归因于粗粒度 label imbalance。",
-        "- 真正很极端的 target 仍只占尾部少数样本；这可能让极端 affinity 的学习更困难，但不是“low/high 三档没有训练样本”的问题。",
+        f"-  tertile ,train  low/high  `{low_pct:.1f}%` / `{high_pct:.1f}%`, mid",
+        "- val/test  low/mid/high  train ;, prediction range  label imbalance",
+        "-  target ; affinity ,low/high ",
         "",
         "## 6. Modeling Implication",
         "",
-        "- 若 low/high 三档在 train 中明显稀缺，优先尝试可验证的 sampling 或平滑 weighting，比直接换 Huber loss 更针对覆盖不足问题。",
-        "- 当前按 train tertiles 看不到明显 low/high 缺口。`HuberLoss` 会降低大残差样本的影响，若极端样本是真实信号，反而可能进一步削弱学习极端值。",
-        "- 因此更合理的下一步是：继续评估 post-hoc calibration、验证集驱动的 weighting/checkpoint policy，"
-        "以及更能表示 binding interaction 的模型表示；Huber 只适合作为“极端 label 疑似噪声很大”时的对照实验。",
+        "-  low/high  train , sampling  weighting, Huber loss ",
+        "-  train tertiles  low/high `HuberLoss` ,,",
+        "- : post-hoc calibration weighting/checkpoint policy,"
+        " binding interaction ;Huber  label ",
         "",
         "## Files",
         "",
@@ -317,7 +317,7 @@ def main() -> None:
     print("ANDD antibody v2 target distribution audit completed.")
     print(f"Output directory: {OUTPUT_DIR}")
     print(f"Train tertile edges: low <= {low_edge:.4f}, high > {high_edge:.4f}")
-    print("提醒：train tertiles 会按定义使 train low/mid/high 接近均衡；请结合 tail counts 看极端样本。")
+    print(":train tertiles  train low/mid/high ; tail counts ")
 
 
 if __name__ == "__main__":

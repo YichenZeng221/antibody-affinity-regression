@@ -1,13 +1,13 @@
 """Dry-run one interaction batch and print residue-matrix shapes.
 
-中文人话说明：
-这个脚本只做 sanity check：
-1. 读取 interaction config。
-2. 取 filtered train set 的第一个 batch。
-3. 做一次 forward。
-4. 打印 device、prediction shape、interaction matrix shape。
+:
+ sanity check:
+1.  interaction config
+2.  filtered train set  batch
+3.  forward
+4.  deviceprediction shapeinteraction matrix shape
 
-它不会训练、不会保存 checkpoint、不会覆盖 predictions。
+ checkpoint predictions
 """
 
 from __future__ import annotations

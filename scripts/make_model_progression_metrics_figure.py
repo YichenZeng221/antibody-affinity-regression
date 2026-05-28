@@ -1,12 +1,12 @@
-"""生成汇报用 model progression 指标图。
+""" model progression 
 
-这张图不是把不同 dataset 的模型强行排成一个排行榜，而是展示：
-1. 在同一 curated split 中，输入表示和 interaction 设计如何演进；
-2. ANDD 数据扩展后的独立 benchmark 结果；
-3. 在同一 ANDD stratified split 中，pooled 与 cross-attention 的公平比较。
+ dataset ,:
+1.  curated split , interaction ;
+2. ANDD  benchmark ;
+3.  ANDD stratified split ,pooled  cross-attention 
 
-所有数值都从已经存在的 Markdown 实验报告中读取。报告中没有的数值会保留为 NaN，
-避免为了画图而人工猜测结果。
+ Markdown  NaN,
+
 """
 
 from __future__ import annotations
@@ -18,8 +18,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-# 将字体和 matplotlib 缓存放到临时目录，避免在项目里重新制造缓存文件，
-# 也避免受限环境下 Fontconfig 尝试写用户目录而失败。
+#  matplotlib ,,
+#  Fontconfig 
 os.environ.setdefault("XDG_CACHE_HOME", "/private/tmp/seqproft_xdg_cache")
 os.environ.setdefault("MPLCONFIGDIR", "/private/tmp/seqproft_matplotlib_cache")
 os.environ.setdefault("MPLBACKEND", "Agg")
@@ -58,7 +58,7 @@ ANDD_STRATIFIED_REPORT = (
 
 
 def read_markdown_table(path: Path, heading: str) -> pd.DataFrame:
-    """读取指定 heading 后面的第一张 Markdown 表格。"""
+    """ heading  Markdown """
     text = path.read_text(encoding="utf-8")
     if heading not in text:
         return pd.DataFrame()
@@ -91,12 +91,12 @@ def read_markdown_table(path: Path, heading: str) -> pd.DataFrame:
 
 
 def clean_name(value: object) -> str:
-    """去掉 Markdown code quotes，便于按 model id 找到表格行。"""
+    """ Markdown code quotes, model id """
     return str(value).replace("`", "").strip()
 
 
 def number(value: object, take_after_slash: bool = False) -> float:
-    """安全读取数字；缺失或格式异常时返回 NaN。"""
+    """; NaN"""
     if value is None or pd.isna(value):
         return float("nan")
     text = str(value).strip().replace("`", "")
@@ -109,7 +109,7 @@ def number(value: object, take_after_slash: bool = False) -> float:
 
 
 def select_row(table: pd.DataFrame, key_column: str, key: str) -> pd.Series | None:
-    """从表格中找到指定模型行；找不到就返回 None，让输出保留 NaN。"""
+    """; None, NaN"""
     if table.empty or key_column not in table.columns:
         return None
     mask = table[key_column].map(clean_name) == key
@@ -125,7 +125,7 @@ def metric(row: pd.Series | None, column: str, *, slash_value: bool = False) -> 
 
 
 def build_metrics_dataframe() -> pd.DataFrame:
-    """从三份现有报告整理八个模型的一致 dataframe。"""
+    """ dataframe"""
     unified_metrics = read_markdown_table(UNIFIED_REPORT, "## Test Metrics")
     unified_bins = read_markdown_table(UNIFIED_REPORT, "## Target-Bin MAE")
     andd_metrics = read_markdown_table(ANDD_ORIGINAL_REPORT, "## Test Metrics")
@@ -231,7 +231,7 @@ def build_metrics_dataframe() -> pd.DataFrame:
 
 
 def draw_figure(frame: pd.DataFrame) -> None:
-    """绘制 2x2 模型演进图，颜色同时表示 benchmark/split 组别。"""
+    """ 2x2 , benchmark/split """
     colors = {
         "curated_same_split": "#247BA0",
         "andd_original_context_only": "#D9902F",
@@ -272,9 +272,9 @@ def draw_figure(frame: pd.DataFrame) -> None:
         axis.spines[["top", "right"]].set_visible(False)
         axis.set_xticks(x, frame["plot_label"], rotation=35, ha="right", fontsize=9)
 
-        # ANDD original 与新的 stratified split 数据定义不同，用虚线分隔。
+        # ANDD original  stratified split ,
         axis.axvline(5.5, color="#59636F", linestyle=(0, (3, 3)), linewidth=1)
-        # curated benchmark 与 ANDD 数据扩展同样不属于同一 test set。
+        # curated benchmark  ANDD  test set
         axis.axvline(4.5, color="#B5BBC3", linestyle=(0, (2, 3)), linewidth=0.9)
         if ideal_line is not None:
             axis.axhline(
@@ -338,7 +338,7 @@ def draw_figure(frame: pd.DataFrame) -> None:
 
 
 def dataframe_to_markdown(frame: pd.DataFrame) -> str:
-    """轻量输出 Markdown table，避免为了报告额外依赖 `tabulate`。"""
+    """ Markdown table, `tabulate`"""
     display = frame.copy()
     for column in display.select_dtypes(include=["float", "float64"]).columns:
         display[column] = display[column].map(
@@ -355,7 +355,7 @@ def dataframe_to_markdown(frame: pd.DataFrame) -> str:
 
 
 def write_summary(frame: pd.DataFrame) -> None:
-    """生成供汇报时阅读的中文说明，并列出指标缺失情况。"""
+    ""","""
     missing = []
     metric_columns = [
         "MAE",
@@ -366,8 +366,8 @@ def write_summary(frame: pd.DataFrame) -> None:
     for _, row in frame.iterrows():
         for column in metric_columns:
             if pd.isna(row[column]):
-                missing.append(f"`{row['model']}` 的 `{column}`")
-    missing_text = "没有；所需四项指标均从已有报告中找到。" if not missing else "、".join(missing)
+                missing.append(f"`{row['model']}`  `{column}`")
+    missing_text = ";" if not missing else "".join(missing)
 
     table_frame = frame[
         [
@@ -392,43 +392,43 @@ def write_summary(frame: pd.DataFrame) -> None:
 
     summary = f"""# Model Progression Metrics Summary
 
-## 图表目的
+## 
 
-这张图展示模型路线如何逐步处理前一个阶段暴露的问题：从 whole-chain pooled input，到 CDR-focused input，再到显式 interaction 与 cross-attention，最后进入更大的 ANDD antibody-only benchmark 以及 tail-aware stratified split。
+: whole-chain pooled input, CDR-focused input, interaction  cross-attention, ANDD antibody-only benchmark  tail-aware stratified split
 
-需要注意：这是一张 **progression context** 图，不是把所有柱子当作同一 test set 的排行榜。
+: **progression context** , test set 
 
-## 指标表
+## 
 
 {table_md}
 
-## 哪些比较是公平的
+## 
 
-- `whole_chain_pooled`、`all_cdr_pooled`、`hcdr3_lcdr3_pooled`、`dot_product_interaction`、`cross_attention` 都来自 `unified_no_high_risk` 的同一 antigen-group split，可以在这一组内直接比较。
-- `andd_v2_all_cdr_pooled` 来自扩展后的 ANDD 原始 split，是新的 benchmark context，不能与前面 605-row benchmark 直接宣称胜负。
-- `andd_v2_stratified_all_cdr_pooled` 与 `andd_v2_stratified_cross_attention` 来自同一个 stratified antigen-level split，可以在这两者之间公平比较。
-- 第四张 subplot 中，curated / ANDD original 使用 `high-target MAE`；ANDD stratified 使用更明确的 `above train P90 MAE`。因此 tail MAE 主要应在各自相同定义的比较组内解读。
+- `whole_chain_pooled``all_cdr_pooled``hcdr3_lcdr3_pooled``dot_product_interaction``cross_attention`  `unified_no_high_risk`  antigen-group split,
+- `andd_v2_all_cdr_pooled`  ANDD  split, benchmark context, 605-row benchmark 
+- `andd_v2_stratified_all_cdr_pooled`  `andd_v2_stratified_cross_attention`  stratified antigen-level split,
+-  subplot ,curated / ANDD original  `high-target MAE`;ANDD stratified  `above train P90 MAE` tail MAE 
 
-## 模型演进解释
+## 
 
-1. `all_cdr_pooled` 相比 `whole_chain_pooled` 降低 MAE/RMSE，说明把输入聚焦到标准 IMGT CDR 后，减少了 whole-chain framework region 带来的非关键噪声。
-2. `dot_product_interaction` 尝试解决 pooled representation 没有显式 CDR-antigen interaction 的问题，但简单 dot-product summary 没有带来提升，说明过早压缩 interaction matrix 过于粗糙。
-3. `cross_attention` 尝试解决 dot-product summary 太粗的问题：在原始 curated benchmark 上，它提高 Spearman 与 prediction spread，并改善 high-target MAE，但 overall MAE 不如 pooled all-CDR。
-4. ANDD 扩展带来一个更大的 antibody-only benchmark；它的绝对指标只能在自身 split 语境下解释，不能当作对原始 benchmark 的直接升级成绩。
-5. 在同一 ANDD stratified split 上，pooled all-CDR 的 MAE 更好（`0.9373` vs `0.9523`），但 cross-attention 改善 Spearman（`0.3861` vs `0.3699`）、`pred_std / true_std`（`0.3925` vs `0.3170`）以及 upper-tail MAE（`1.8483` vs `2.0887`）。
+1. `all_cdr_pooled`  `whole_chain_pooled`  MAE/RMSE, IMGT CDR , whole-chain framework region 
+2. `dot_product_interaction`  pooled representation  CDR-antigen interaction , dot-product summary , interaction matrix 
+3. `cross_attention`  dot-product summary : curated benchmark , Spearman  prediction spread, high-target MAE, overall MAE  pooled all-CDR
+4. ANDD  antibody-only benchmark; split , benchmark 
+5.  ANDD stratified split ,pooled all-CDR  MAE (`0.9373` vs `0.9523`), cross-attention  Spearman(`0.3861` vs `0.3699`)`pred_std / true_std`(`0.3925` vs `0.3170`) upper-tail MAE(`1.8483` vs `2.0887`)
 
-## 诚实结论
+## 
 
-- CDR-focused input 明确改善了整体误差。
-- Learnable cross-attention 对 ranking、prediction spread 和高 affinity tail 有信号，但当前尚未赢 overall MAE。
-- Regression-to-the-mean 仍然存在，且在 tail-covering stratified split 上仍能观察到，因此它不只是 split artifact。
-- 当前所有结果都是 single-seed baseline；下一步需要在固定 split 下做更稳定的 seed/checkpoint 比较，并继续研究 calibration、tail-aware training 或 structure/contact-aware features。
+- CDR-focused input 
+- Learnable cross-attention  rankingprediction spread  affinity tail , overall MAE
+- Regression-to-the-mean , tail-covering stratified split , split artifact
+-  single-seed baseline; split  seed/checkpoint , calibrationtail-aware training  structure/contact-aware features
 
-## 缺失指标检查
+## 
 
 {missing_text}
 
-## 数据来源
+## 
 
 - `{UNIFIED_REPORT.relative_to(ROOT)}`
 - `{ANDD_ORIGINAL_REPORT.relative_to(ROOT)}`

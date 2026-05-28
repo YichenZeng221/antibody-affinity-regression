@@ -1,13 +1,13 @@
 """Audit structure/contact feature feasibility for ANDD antibody v2 stratified data.
 
-这个脚本只回答一个问题：现有样本是否已经具备提取 interface/contact 特征的前提。
-它不会训练模型，也不会真正批量计算原子距离或修改训练数据。
+: interface/contact 
+,
 
-为什么要分开报告 basic interface 和 CDR contact？
-- 只要有结构文件和明确的 H/L/antigen chain，就可以下一步计算 antibody-antigen
-  contact count、minimum distance、interface residue count。
-- CDR-antigen contact 还需要确认“CSV 里的标准 IMGT CDR 残基”如何映射到结构中的
-  residue numbering。这个步骤没有验证前，不能假装 CDR contact 已经可靠可算。
+ basic interface  CDR contact?
+-  H/L/antigen chain, antibody-antigen
+  contact countminimum distanceinterface residue count
+- CDR-antigen contact CSV  IMGT CDR 
+  residue numbering, CDR contact 
 """
 
 from __future__ import annotations
@@ -73,7 +73,7 @@ PREDICTION_FILES = {
 
 
 def clean_text(value: object) -> str:
-    """把空值和常见缺失符号变成空字符串，方便安全判断。"""
+    ""","""
     if pd.isna(value):
         return ""
     text = str(value).strip()
@@ -87,7 +87,7 @@ def normalize_pdb(value: object) -> str:
 
 
 def chain_ids(value: object) -> set[str]:
-    """SAbDab 的 antigen_chain 有时是多条链，用分隔符安全拆开。"""
+    """SAbDab  antigen_chain ,"""
     text = clean_text(value)
     if not text:
         return set()
@@ -105,7 +105,7 @@ def structure_files(directory: Path) -> dict[str, Path]:
 
 
 def pdb_chain_set(path: Path | None) -> set[str]:
-    """只读取 chain ID，不计算距离；因此这仍是轻量 availability audit。"""
+    """ chain ID,; availability audit"""
     if path is None or not path.exists():
         return set()
     chains: set[str] = set()
@@ -137,7 +137,7 @@ def load_summary_options(dataset_pdbs: set[str]) -> dict[str, list[dict[str, str
     for column in CHAIN_COLUMNS:
         summary[column] = summary[column].map(clean_text)
 
-    # 同一 PDB 在 summary 中可有重复 row；availability 只需 distinct chain mapping。
+    #  PDB  summary  row;availability  distinct chain mapping
     options: dict[str, list[dict[str, str]]] = {}
     distinct = summary.drop_duplicates(["pdb_norm", *CHAIN_COLUMNS])
     for pdb_id, group in distinct.groupby("pdb_norm"):
@@ -146,7 +146,7 @@ def load_summary_options(dataset_pdbs: set[str]) -> dict[str, list[dict[str, str
 
 
 def prediction_index() -> tuple[dict[str, set[str]], list[str]]:
-    """收集已有 test predictions，可验证 contact features 后续能否连接 residual。"""
+    """ test predictions, contact features  residual"""
     samples_by_model: dict[str, set[str]] = {}
     missing: list[str] = []
     for label, path in PREDICTION_FILES.items():
@@ -162,7 +162,7 @@ def viable_mapping(option: dict[str, str], available_chains: set[str]) -> bool:
     heavy = chain_ids(option["Hchain"])
     light = chain_ids(option["Lchain"])
     antigen = chain_ids(option["antigen_chain"])
-    # antibody-only task 要求 heavy、light、antigen 都有，并在结构中找到。
+    # antibody-only task  heavylightantigen ,
     return bool(heavy and light and antigen and heavy <= available_chains
                 and light <= available_chains and antigen <= available_chains)
 
@@ -200,7 +200,7 @@ def make_availability_table(data: pd.DataFrame) -> tuple[pd.DataFrame, dict[str,
             for files in (local_files, raw_files, imgt_files, chothia_files)
         )
         basic_ready = bool(any_structure and unique_viable)
-        # CDR-level features 需要再验证 CDR residue 与结构编号/残基的对应关系。
+        # CDR-level features  CDR residue /
         cdr_pipeline_candidate = bool(
             basic_ready and cdr_ready and pdb_id in imgt_files
         )
@@ -350,15 +350,15 @@ def write_report(table: pd.DataFrame, metadata: dict[str, object]) -> None:
         "",
         "## Scope",
         "",
-        "- 目标：检查现有结构和 metadata 是否足以支持下一步 contact/interface feature extraction。",
-        "- 数据：`data/processed_affinity/expanded_affinity_antibody_v2_stratified/{train,val,test}.csv`。",
-        "- 本次只读取数据和 PDB chain ID；**没有**批量计算原子距离、没有训练模型、没有修改 dataset。",
-        "- 外部 SAbDab structure archive 仅通过原绝对路径只读访问，没有复制 31GB 结构目录。",
+        "- : metadata  contact/interface feature extraction",
+        "- :`data/processed_affinity/expanded_affinity_antibody_v2_stratified/{train,val,test}.csv`",
+        "-  PDB chain ID;**** dataset",
+        "-  SAbDab structure archive , 31GB ",
         "",
         "## Inputs Found",
         "",
         f"- ANDD stratified rows: **{total_rows}** ({unique_pdbs} unique `pdb_id`).",
-        f"- SAbDab summary metadata: `{SUMMARY_PATH}`，可提供 `Hchain`, `Lchain`, `antigen_chain` 候选。",
+        f"- SAbDab summary metadata: `{SUMMARY_PATH}`, `Hchain`, `Lchain`, `antigen_chain` ",
         f"- Project-local cached PDB files: `{LOCAL_PDB_DIR}` = {structure_counts['project_local_data_pdb']} files; "
         f"**{local_structure_rows} / {total_rows}** ANDD rows match this local cache.",
         f"- External SAbDab archive root exists: `{metadata['external_archive_exists']}` at `{ARCHIVE_ROOT}`.",

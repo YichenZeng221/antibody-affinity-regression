@@ -14,9 +14,10 @@ This `github_ready/` directory is a curated export of the local project. It is d
   - tail-aware w2 configs
   - multi-seed configs
 - Final reports:
-  - English, Chinese, and bilingual final summaries
+  - English final project summary
   - final results index
-  - contact/interface experiment chain summary
+  - compact ANDD stratified model summary
+  - compact contact/interface audit summary
 - Final presentation figures:
   - prediction compression
   - residual trend

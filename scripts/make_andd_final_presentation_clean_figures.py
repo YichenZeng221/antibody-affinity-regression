@@ -1,7 +1,7 @@
 """Generate clean final presentation figures for ANDD antibody v2.
 
-只读取已有 CSV / predictions；不训练模型、不改 dataset、不覆盖旧图。
-输出文件名带 `_clean` 或新的 Figure 1 scatter 名称。
+ CSV / predictions; dataset
+ `_clean`  Figure 1 scatter 
 """
 
 from __future__ import annotations
@@ -92,7 +92,7 @@ def figure1_train_val_test_scatter() -> Path:
         ax.scatter(true, pred, s=22, color=ORANGE, alpha=0.66, edgecolor="white", linewidth=0.3)
         ax.plot([lo, hi], [lo, hi], linestyle="--", color="black", linewidth=1.2, label="ideal y=x")
 
-        # 拟合趋势线；斜率明显小于 1 代表预测范围被压缩。
+        # ; 1 
         slope, intercept = np.polyfit(true, pred, 1)
         xs = np.linspace(lo, hi, 120)
         ax.plot(xs, slope * xs + intercept, color=RED, linewidth=2.0, label="fitted trend")

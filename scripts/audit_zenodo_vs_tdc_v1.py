@@ -1,18 +1,18 @@
 """Audit Zenodo Protein_SAbDab raw CSV against processed TDC v1.
 
-中文人话说明：
-Zenodo CSV 是 raw antibody-antigen affinity pair table。
-当前项目里的 TDC v1 是从同类 raw rows 经过：
+:
+Zenodo CSV  raw antibody-antigen affinity pair table
+ TDC v1  raw rows :
 
-1. target 检查；
-2. heavy/light sequence parsing；
-3. exact heavy+light+antigen triplet 去重；
-4. antigen-group split；
+1. target ;
+2. heavy/light sequence parsing;
+3. exact heavy+light+antigen triplet ;
+4. antigen-group split;
 
-之后得到的 clean processed dataset。
+ clean processed dataset
 
-这个脚本只解释 raw 493 rows 和 clean 466 rows 的差别，不训练模型，
-也不修改任何 processed dataset。
+ raw 493 rows  clean 466 rows ,,
+ processed dataset
 """
 
 from __future__ import annotations
@@ -215,10 +215,10 @@ def excluded_reason_counts(excluded: pd.DataFrame) -> dict:
 def annotate_not_in_clean(parsed_raw: pd.DataFrame, clean: pd.DataFrame, excluded: pd.DataFrame) -> pd.DataFrame:
     """Collect Zenodo raw rows not retained by TDC v1 clean."""
 
-    # Zenodo raw 里 Antibody_ID 是唯一的 493 个 ID。
-    # 这里用 Antibody_ID 判断 raw row 是否进入 clean，更稳：
-    # 同一 row 的 Y 在不同 CSV round-trip 后可能显示成
-    # ``8.6e-10`` vs ``8.599999999999996e-10``，不该因此误判为新 row。
+    # Zenodo raw  Antibody_ID  493  ID
+    #  Antibody_ID  raw row  clean,:
+    #  row  Y  CSV round-trip 
+    # ``8.6e-10`` vs ``8.599999999999996e-10``, row
     clean_ids = {normalize_id(value) for value in clean["Antibody_ID"]}
     excluded_small = excluded[["Antibody_ID", "exclusion_reason"]].copy()
     excluded_small["antibody_id_key"] = excluded_small["Antibody_ID"].map(normalize_id)

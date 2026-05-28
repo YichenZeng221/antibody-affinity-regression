@@ -1,35 +1,35 @@
 """Build a sequence-only antibody-antigen affinity regression dataset.
 
-中文人话说明：
-这个脚本是 Stage 1 regression MVP 的数据处理脚本。
-它不会覆盖 heavy/light classification 的 data/processed/ 数据。
+:
+ Stage 1 regression MVP 
+ heavy/light classification  data/processed/ 
 
-raw SAbDab summary 是什么？
-SAbDab 是抗体结构数据库。summary TSV 是它给每个结构整理的一张表，
-里面有 PDB ID、heavy chain ID、light chain ID、antigen chain ID、
-affinity 等元信息。
+raw SAbDab summary ?
+SAbDab summary TSV ,
+ PDB IDheavy chain IDlight chain IDantigen chain ID
+affinity 
 
-PDB 文件是干什么的？
-summary 里只有“哪个 PDB、哪条 chain”，不直接给完整 amino acid sequence。
-所以我们要用 PDB ID 下载/读取 .pdb 文件，再用 chain id 从结构文件里提取序列。
+PDB ?
+summary  PDB chain, amino acid sequence
+ PDB ID / .pdb , chain id 
 
-输入：
+:
     data/raw/sabdab_summary.tsv
     data/pdb/*.pdb
 
-输出：
+:
     data/processed_affinity/sequence_only/train.csv
     data/processed_affinity/sequence_only/val.csv
     data/processed_affinity/sequence_only/test.csv
 
-任务：
+:
     input  = heavy_sequence + light_sequence + antigen_sequence
     target = neg_log10_affinity = -log10(affinity)
 
-为什么用 -log10(affinity)？
-affinity 原始数值跨度很大，例如 1e-12 到 1e-4。
-直接回归这么大的跨度会很难。取 -log10 后，数值会变成更适合模型学习的范围，
-比如 1e-9 会变成 9。
+ -log10(affinity)?
+affinity , 1e-12  1e-4
+ -log10 ,,
+ 1e-9  9
 """
 
 from pathlib import Path
@@ -81,9 +81,9 @@ OUTPUT_COLUMNS = [
 def parse_args() -> argparse.Namespace:
     """Read command line arguments.
 
-    --max_rows 是 optional：
-    - 不传：处理全部 rows
-    - 传 100：只处理前 100 行，方便快速测试
+    --max_rows  optional:
+    - : rows
+    -  100: 100 ,
     """
 
     parser = argparse.ArgumentParser(description="Build SAbDab affinity regression CSV files.")
@@ -112,11 +112,11 @@ def clean_chain_id(chain_id: str) -> str:
 def split_chain_ids(chain_text: str) -> list[str]:
     """Split antigen_chain values like 'A | B' or 'A|B'.
 
-    人话解释：
-    有些 antigen 不是一条 chain，而是多条 chain 共同构成。
-    SAbDab 里可能写成：
+    :
+     antigen  chain, chain 
+    SAbDab :
         A | B
-    我们要拆成 ["A", "B"]，分别提取序列，再拼接起来。
+     ["A", "B"],,
     """
 
     return [part.strip() for part in str(chain_text).split("|") if part.strip()]
@@ -125,9 +125,9 @@ def split_chain_ids(chain_text: str) -> list[str]:
 def download_pdb_if_needed(pdb_id: str, pdb_dir: Path, stats: dict) -> Path | None:
     """Use cached PDB if available, otherwise download it from RCSB.
 
-    中文人话说明：
-    下载 PDB 比较慢，所以如果 data/pdb/ 里已经有同名文件，就直接复用。
-    这样反复调试脚本时不用一直联网下载。
+    :
+     PDB , data/pdb/ ,
+    
     """
 
     pdb_id = pdb_id.upper()
@@ -153,9 +153,9 @@ def download_pdb_if_needed(pdb_id: str, pdb_dir: Path, stats: dict) -> Path | No
 def load_structure(pdb_path: Path, pdb_id: str, stats: dict):
     """Parse one PDB file with Biopython.
 
-    Biopython 的 PDBParser 会把 .pdb 文件变成 Python 对象：
-    structure -> model -> chain -> residue。
-    后面才能按 chain id 取出氨基酸序列。
+    Biopython  PDBParser  .pdb  Python :
+    structure -> model -> chain -> residue
+     chain id 
     """
 
     parser = PDBParser(QUIET=True)
@@ -171,11 +171,11 @@ def load_structure(pdb_path: Path, pdb_id: str, stats: dict):
 def extract_chain_sequence(structure, pdb_id: str, chain_id: str, min_length: int, stats: dict) -> str | None:
     """Extract one chain sequence from a parsed PDB structure.
 
-    中文人话说明：
-    Hchain / Lchain / antigen_chain 都只是 chain id，比如 H、L、A。
-    真正的 amino acid sequence 需要从 PDB 结构里逐个 residue 读出来。
+    :
+    Hchain / Lchain / antigen_chain  chain id, HLA
+     amino acid sequence  PDB  residue 
 
-    这里跳过非标准氨基酸和太短的 chain，因为它们通常不适合作为蛋白序列样本。
+     chain,
     """
 
     model = structure[0]
@@ -204,8 +204,8 @@ def extract_chain_sequence(structure, pdb_id: str, chain_id: str, min_length: in
 def is_valid_antigen_type(antigen_type: str) -> bool:
     """Keep protein/peptide antigens and skip haptens.
 
-    Hapten 是小分子，不是蛋白/肽序列。
-    这个 Stage 1 模型的输入是 sequence，所以先只保留 protein / peptide antigen。
+    Hapten ,/
+     Stage 1  sequence, protein / peptide antigen
     """
 
     text = str(antigen_type).lower()
@@ -217,10 +217,10 @@ def is_valid_antigen_type(antigen_type: str) -> bool:
 def split_by_pdb(records: list[dict], seed: int) -> tuple[list[dict], list[dict], list[dict]]:
     """Split records by PDB ID so one PDB cannot appear in multiple splits.
 
-    中文人话说明：
-    如果同一个 PDB 的样本同时出现在 train 和 test，
-    模型可能只是“见过类似结构”，测试分数会虚高。
-    PDB-level split 比单条 row random split 更严格。
+    :
+     PDB  train  test,
+    ,
+    PDB-level split  row random split 
     """
 
     random.seed(seed)
@@ -261,8 +261,8 @@ def split_by_pdb(records: list[dict], seed: int) -> tuple[list[dict], list[dict]
 def save_records(records: list[dict], output_path: Path) -> None:
     """Save records with a stable column order.
 
-    不覆盖 data/processed/，而是写到 data/processed_affinity/sequence_only/。
-    这样旧的 heavy/light classification 数据不会被破坏。
+     data/processed/, data/processed_affinity/sequence_only/
+     heavy/light classification 
     """
 
     dataframe = pd.DataFrame(records, columns=OUTPUT_COLUMNS)
@@ -345,14 +345,14 @@ def main() -> None:
         if stats["rows_seen"] % 25 == 0:
             print(f"Processing row {stats['rows_seen']}/{len(summary)} | PDB: {pdb_id}")
 
-        # affinity 必须是正数，才能计算 -log10(affinity)。
-        # missing / 非数字 / <=0 的值都不能作为 regression target。
+        # affinity , -log10(affinity)
+        # missing /  / <=0  regression target
         affinity = pd.to_numeric(row["affinity"], errors="coerce")
         if pd.isna(affinity) or float(affinity) <= 0:
             stats["skipped_invalid_affinity"] += 1
             continue
 
-        # 没有 heavy/light/antigen chain id，就没法从 PDB 里提取三条输入序列。
+        #  heavy/light/antigen chain id, PDB 
         if is_missing(h_chain) or is_missing(l_chain) or is_missing(antigen_chain_text):
             stats["skipped_missing_chain"] += 1
             continue
@@ -361,7 +361,7 @@ def main() -> None:
             stats["skipped_missing_chain"] += 1
             continue
 
-        # Stage 1 是 sequence-only 模型，所以先跳过 Hapten 等非序列 antigen。
+        # Stage 1  sequence-only , Hapten  antigen
         if not is_valid_antigen_type(row["antigen_type"]):
             stats["skipped_antigen_type"] += 1
             continue
@@ -392,12 +392,12 @@ def main() -> None:
         if heavy_sequence is None or light_sequence is None or len(antigen_parts) != len(antigen_chain_ids):
             continue
 
-        # 如果 antigen_chain 是多条 chain，比如 A|B，就把各条 antigen sequence 拼接。
+        #  antigen_chain  chain, A|B, antigen sequence 
         antigen_sequence = "".join(antigen_parts)
 
         # target normalization:
-        # 原始 affinity 越小通常表示 binding 越强。
-        # -log10 后，强 binding 会变成更大的正数，也更适合回归。
+        #  affinity  binding 
+        # -log10 , binding ,
         neg_log10_affinity = -math.log10(float(affinity))
 
         record = {

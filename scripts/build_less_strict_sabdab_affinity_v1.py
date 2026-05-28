@@ -1,18 +1,18 @@
 """Build a less-strict SAbDab affinity dataset from extracted sequence rows.
 
-中文人话说明：
-这个版本的目标不是“越脏越大”，而是：
+:
+,:
 
-1. 只从已经有 target 和 heavy/light/antigen sequence 的 ``sequence_only`` CSV 出发；
-2. 在 strict metadata screen 的基础上，明确放宽几条规则；
-3. 写出每条放宽规则增加了多少样本，以及它带来的风险。
+1.  target  heavy/light/antigen sequence  ``sequence_only`` CSV ;
+2.  strict metadata screen ,;
+3. ,
 
-为什么不直接从 summary.tsv 开始？
-summary.tsv 里有 metadata，但不保证每行都能提取三条 sequence。
-用户这一步要求所有样本必须有可计算 target 和可提取 sequence，
-所以 v1 先复用已经完成 PDB sequence extraction 的 sequence_only 结果。
+ summary.tsv ?
+summary.tsv  metadata, sequence
+ target  sequence,
+ v1  PDB sequence extraction  sequence_only 
 
-输出是一个新 dataset version，不覆盖 strict / clean_v2 / TDC 数据：
+ dataset version, strict / clean_v2 / TDC :
 
     data/processed_affinity/less_strict_sabdab_affinity_v1/
 """
@@ -58,8 +58,8 @@ def looks_suspicious_affinity_method(value: object) -> bool:
 def load_sequence_only() -> pd.DataFrame:
     """Load the previously extracted SAbDab sequence-only rows.
 
-    这些 rows 已经走过 PDB sequence extraction。我们仍然会再次做 target/sequence
-    sanity check，避免以后有人替换输入 CSV 后 silent 引入坏行。
+     rows  PDB sequence extraction target/sequence
+    sanity check, CSV  silent 
     """
 
     frames = []
@@ -199,8 +199,8 @@ def risk_notes() -> dict[str, str]:
 def deduplicate_triplets(data: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Keep first exact triplet and record removed duplicates.
 
-    三条输入 sequence 完全一样时，模型看到的信息也一样。
-    去掉 exact duplicate 不会减少输入多样性，还能降低 split 和评估解释风险。
+     sequence ,
+     exact duplicate , split 
     """
 
     duplicated = data[data.duplicated(TRIPLET_COLUMNS, keep="first")].copy()

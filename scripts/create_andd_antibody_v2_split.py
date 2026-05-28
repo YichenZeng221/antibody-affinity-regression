@@ -1,17 +1,17 @@
 """Create formal ANDD-only antibody v2 train/val/test split.
 
-中文人话说明：
-这一步只创建数据 split，不训练模型。
+:
+ split,
 
-输入：
+:
     expanded_affinity_antibody_v2_audited_flags.csv
 
-过滤：
+:
     keep_safe == True
 
-split 规则：
-    按 antigen_sequence 分组，同一个 antigen_sequence 只能出现在
-    train / val / test 的其中一个 split，避免 antigen leakage。
+split :
+     antigen_sequence , antigen_sequence 
+    train / val / test  split, antigen leakage
 """
 
 from __future__ import annotations
@@ -39,13 +39,13 @@ TARGET_COLUMN = "neg_log10_affinity_candidate"
 
 
 def bool_series(series: pd.Series) -> pd.Series:
-    """把 CSV 中的 True/False 字符串统一转成 bool。"""
+    """ CSV  True/False  bool"""
 
     return series.astype(str).str.lower().isin({"true", "1", "yes"})
 
 
 def numeric_summary(values: pd.Series) -> dict:
-    """常用数值统计，用来检查 target 分布。"""
+    """, target """
 
     clean = pd.to_numeric(values, errors="coerce").dropna()
     if clean.empty:
@@ -63,10 +63,10 @@ def numeric_summary(values: pd.Series) -> dict:
 def group_split(df: pd.DataFrame) -> pd.DataFrame:
     """Greedy antigen_sequence group split.
 
-    简单策略：
-    - 先按 antigen_sequence 聚合。
-    - 大 group 先分配。
-    - 每次放到当前 row 比例最低的 split。
+    :
+    -  antigen_sequence 
+    -  group 
+    -  row  split
     """
 
     groups = []
@@ -93,7 +93,7 @@ def group_split(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def summarize_split(df: pd.DataFrame) -> dict:
-    """汇总 split rows、antigen group count、target/source 分布。"""
+    """ split rowsantigen group counttarget/source """
 
     return {
         "rows": int(len(df)),
@@ -111,7 +111,7 @@ def main() -> None:
     if keep.empty:
         raise ValueError("No keep_safe rows found. Run the antibody v2 audit first.")
 
-    # 训练代码更习惯 sample_id。ANDD candidate 原本叫 candidate_id，这里复制一份。
+    #  sample_idANDD candidate  candidate_id,
     keep["sample_id"] = keep["candidate_id"].astype(str)
     keep["affinity"] = pd.to_numeric(keep["affinity_kd_m"], errors="raise")
 

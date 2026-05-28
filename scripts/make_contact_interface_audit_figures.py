@@ -1,11 +1,11 @@
 """Generate presentation figures for contact/interface audit steps.
 
-中文说明：
-只读取已有 contact audit CSV，生成两张汇报用 PNG：
+:
+ contact audit CSV, PNG:
 1. Contact/interface availability funnel
 2. CDR mapping validation summary
 
-不训练模型、不修改 dataset、不覆盖已有实验结果。
+ dataset
 """
 
 from __future__ import annotations
@@ -57,7 +57,7 @@ def savefig(path: Path) -> None:
 
 
 def as_bool(series: pd.Series) -> pd.Series:
-    """兼容 bool / string bool 两种 CSV 读入形式。"""
+    """ bool / string bool  CSV """
     if series.dtype == bool:
         return series
     return series.astype(str).str.lower().isin({"true", "1", "yes", "y"})

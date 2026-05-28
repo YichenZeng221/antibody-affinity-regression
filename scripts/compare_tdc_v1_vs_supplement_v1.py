@@ -1,17 +1,17 @@
 """Compare original TDC v1 against TDC plus SAbDab supplement v1.
 
-中文人话说明：
-这个脚本只比较两个 dataset，不训练模型。
+:
+ dataset,
 
-我们想先回答：
-1. supplement v1 比原 TDC v1 多了多少样本？
-2. train/val/test 的 target 分布有没有明显改变？
-3. 两个版本的 antigen-group split 是否仍然健康？
-4. 因为 supplement v1 重新 split 了 full dataset，原 TDC 样本有多少换了 split？
+:
+1. supplement v1  TDC v1 ?
+2. train/val/test  target ?
+3.  antigen-group split ?
+4.  supplement v1  split  full dataset, TDC  split?
 
-最后一点很重要：
-如果同一个模型在两个 dataset 上比较，split 变化本身也会影响结果。
-所以 report 会把 split movement 写出来，避免把“数据增加效果”和“测试集换了效果”混在一起。
+:
+ dataset ,split 
+ report  split movement ,
 """
 
 from __future__ import annotations

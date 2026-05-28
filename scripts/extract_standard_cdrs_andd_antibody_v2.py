@@ -1,15 +1,15 @@
 """Extract standard IMGT CDRs for ANDD-only antibody v2.
 
-中文人话说明：
-这一步只给已经 split 好的 ANDD antibody v2 数据重新标注 CDR。
-它不训练模型，也不修改原始 split 数据。
+:
+ split  ANDD antibody v2  CDR
+, split 
 
-为什么不直接用 ANDD 自带 CDR 字段？
-因为不同数据源的 CDR 定义/编号方案可能不一致。正式 CDR-aware baseline
-最好使用同一个方法重新提取。这里使用 AbNumber + IMGT。
+ ANDD  CDR ?
+ CDR / CDR-aware baseline
+ AbNumber + IMGT
 
-运行环境：
-请用已经验证过的 `abnumber-cdr` 环境运行，例如：
+:
+ `abnumber-cdr` ,:
     conda run -n abnumber-cdr python scripts/extract_standard_cdrs_andd_antibody_v2.py
 """
 
@@ -35,7 +35,7 @@ CDR_COLUMNS = ["HCDR1", "HCDR2", "HCDR3", "LCDR1", "LCDR2", "LCDR3"]
 
 
 def load_abnumber_chain():
-    """导入 AbNumber，并确保当前环境里的 hmmscan 在 PATH 里。"""
+    """ AbNumber, hmmscan  PATH """
 
     current_python_bin = str(Path(sys.executable).resolve().parent)
     os.environ["PATH"] = current_python_bin + os.pathsep + os.environ.get("PATH", "")
@@ -49,14 +49,14 @@ def load_abnumber_chain():
 
 
 def short_error_message(error: Exception) -> str:
-    """把 AbNumber 的长错误压成一行，方便写 CSV。"""
+    """ AbNumber , CSV"""
 
     message = " ".join(str(error).split())
     return message or error.__class__.__name__
 
 
 def extract_chain_cdrs(sequence: str, expected_chain: str, Chain) -> dict:
-    """用 IMGT 编号提取单条 heavy/light chain 的 CDR1/2/3。"""
+    """ IMGT  heavy/light chain  CDR1/2/3"""
 
     if pd.isna(sequence) or not str(sequence).strip():
         return {
@@ -103,7 +103,7 @@ def extract_chain_cdrs(sequence: str, expected_chain: str, Chain) -> dict:
 
 
 def annotate_row(row: dict, Chain) -> dict:
-    """复制一行原始数据，并新增标准 CDR 字段和 status/error。"""
+    """, CDR  status/error"""
 
     heavy = extract_chain_cdrs(row["heavy_sequence"], "heavy", Chain)
     light = extract_chain_cdrs(row["light_sequence"], "light", Chain)
@@ -125,7 +125,7 @@ def annotate_row(row: dict, Chain) -> dict:
 
 
 def annotate_split(split_name: str, Chain) -> pd.DataFrame:
-    """读取并标注一个 split。"""
+    """ split"""
 
     path = INPUT_DIR / f"{split_name}.csv"
     if not path.exists():
@@ -145,7 +145,7 @@ def annotate_split(split_name: str, Chain) -> pd.DataFrame:
 
 
 def cdr_length_summary(df: pd.DataFrame) -> list[str]:
-    """生成 CDR 长度 summary，帮助判断提取是否自然。"""
+    """ CDR  summary,"""
 
     lines = []
     for column in CDR_COLUMNS:
@@ -159,7 +159,7 @@ def cdr_length_summary(df: pd.DataFrame) -> list[str]:
 
 
 def grouped_error(error: str) -> str:
-    """把冗长 error 聚合成更容易读的类别。"""
+    """ error """
 
     if not error:
         return ""
@@ -173,7 +173,7 @@ def grouped_error(error: str) -> str:
 
 
 def build_report(split_frames: dict[str, pd.DataFrame], failures: pd.DataFrame) -> str:
-    """写 Markdown summary。"""
+    """ Markdown summary"""
 
     all_df = pd.concat(split_frames.values(), ignore_index=True)
     lines = [

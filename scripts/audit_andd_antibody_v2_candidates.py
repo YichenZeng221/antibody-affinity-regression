@@ -1,13 +1,13 @@
 """Audit ANDD antibody-only expanded affinity v2 candidates.
 
-中文人话说明：
-这个脚本只做“人工审计准备”，不训练模型，也不创建 train/val/test split。
+:
+,, train/val/test split
 
-输入是上一阶段从 ANDD 里筛出来的 antibody candidates：
-heavy_sequence + light_sequence + antigen_sequence + experimental Kd。
+ ANDD  antibody candidates:
+heavy_sequence + light_sequence + antigen_sequence + experimental Kd
 
-输出是带 flags 的 CSV 和几个 summary 表，帮助我们判断哪些 rows 比较安全，
-哪些 rows 需要人工检查，哪些 rows 以后进入正式 v2 dataset 前应该先排除。
+ flags  CSV  summary , rows ,
+ rows , rows  v2 dataset 
 """
 
 from __future__ import annotations
@@ -44,7 +44,7 @@ CDR_COLUMNS = ["HCDR1", "HCDR2", "HCDR3", "LCDR1", "LCDR2", "LCDR3"]
 
 
 def present(value) -> bool:
-    """判断一个表格值是否真的存在。"""
+    """"""
 
     if value is None or pd.isna(value):
         return False
@@ -53,7 +53,7 @@ def present(value) -> bool:
 
 
 def to_float(value):
-    """安全地把表格值转成 float；转不了就返回 None。"""
+    """ float; None"""
 
     try:
         number = float(value)
@@ -65,7 +65,7 @@ def to_float(value):
 
 
 def bool_value(value) -> bool:
-    """CSV 里的 True/False 有时是字符串，这里统一转成 bool。"""
+    """CSV  True/False , bool"""
 
     if isinstance(value, bool):
         return value
@@ -73,9 +73,9 @@ def bool_value(value) -> bool:
 
 
 def sequence_issue_flags(sequence: str, kind: str) -> list[str]:
-    """检查序列是否有明显质量问题。
+    """
 
-    这里不是做生物学最终判断，只是找出“看起来不适合直接训练”的行。
+    ,
     """
 
     flags = []
@@ -102,7 +102,7 @@ def sequence_issue_flags(sequence: str, kind: str) -> list[str]:
 
 
 def numeric_summary(values: pd.Series) -> dict:
-    """给一列数字生成常用分布统计。"""
+    """"""
 
     clean = pd.to_numeric(values, errors="coerce").dropna()
     if len(clean) == 0:
@@ -120,14 +120,14 @@ def numeric_summary(values: pd.Series) -> dict:
 
 
 def length_summary(df: pd.DataFrame, column: str) -> dict:
-    """统计序列长度分布。"""
+    """"""
 
     lengths = df[column].fillna("").astype(str).str.len()
     return numeric_summary(lengths)
 
 
 def write_csv_to_outputs(filename: str, rows: list[dict], fieldnames: list[str]) -> None:
-    """同一个结果写到 outputs/ 和 data/processed_affinity/，方便阅读和后续复用。"""
+    """ outputs/  data/processed_affinity/,"""
 
     for directory in [OUTPUT_DIR, PROCESSED_DIR]:
         directory.mkdir(parents=True, exist_ok=True)
@@ -138,7 +138,7 @@ def write_csv_to_outputs(filename: str, rows: list[dict], fieldnames: list[str])
 
 
 def load_unified_splits() -> pd.DataFrame:
-    """读取当前 unified_no_high_risk，用来检查 overlap 和 test antigen overlap。"""
+    """ unified_no_high_risk, overlap  test antigen overlap"""
 
     frames = []
     for split in ["train", "val", "test"]:
@@ -151,7 +151,7 @@ def load_unified_splits() -> pd.DataFrame:
 
 
 def source_summary(df: pd.DataFrame) -> list[dict]:
-    """按 source 汇总 row count 和 Kd/target 分布。"""
+    """ source  row count  Kd/target """
 
     rows = []
     for source, group in df.groupby("source", dropna=False):
@@ -180,7 +180,7 @@ def source_summary(df: pd.DataFrame) -> list[dict]:
 
 
 def kd_distribution_summary(df: pd.DataFrame) -> list[dict]:
-    """输出整体和按 source 的 Kd 分布 summary。"""
+    """ source  Kd  summary"""
 
     rows = []
     overall_kd = numeric_summary(df["affinity_kd_m"])
@@ -194,7 +194,7 @@ def kd_distribution_summary(df: pd.DataFrame) -> list[dict]:
 
 
 def cdr_length_summary(df: pd.DataFrame) -> list[str]:
-    """生成 CDR 长度的 Markdown 行。"""
+    """ CDR  Markdown """
 
     lines = []
     for column in CDR_COLUMNS:
@@ -217,7 +217,7 @@ def main() -> None:
     df = pd.read_csv(CANDIDATE_CSV)
     unified = load_unified_splits()
 
-    # unified 的 test antigen overlap 很重要：如果 v2 以后要和旧 test 比较，test antigen 重叠会影响解释。
+    # unified  test antigen overlap : v2  test ,test antigen 
     unified_antigens = set(unified.get("antigen_sequence", pd.Series(dtype=str)).dropna().astype(str))
     unified_test_antigens = set(
         unified.loc[unified.get("unified_split", pd.Series(dtype=str)) == "test", "antigen_sequence"].dropna().astype(str)
@@ -232,7 +232,7 @@ def main() -> None:
             + unified["antigen_sequence"].fillna("").astype(str)
         )
 
-    # 先构建表内 duplicate 信息。
+    #  duplicate 
     triplet_keys = (
         df["heavy_sequence"].fillna("").astype(str)
         + "||"
@@ -293,7 +293,7 @@ def main() -> None:
         if bool_value(row.get("overlap_source_id")):
             flags.append("overlap_source_id_with_unified")
 
-        # CDR 字段存在但目前来自 ANDD 原始表，不一定统一 IMGT。
+        # CDR  ANDD , IMGT
         missing_cdrs = [column for column in CDR_COLUMNS if not present(row.get(column))]
         if missing_cdrs:
             flags.append("missing_cdr_field")
@@ -306,7 +306,7 @@ def main() -> None:
         flag_duplicate = any("duplicate" in flag or "overlap_exact_triplet" in flag for flag in flags)
         flag_antigen_overlap = any(flag in flags for flag in ["overlap_antigen_sequence_with_unified", "overlap_current_test_antigen"])
 
-        # conservative keep_safe：不是说一定可以训练，而是“下一步最值得优先人工审计/进入 split 设计”的行。
+        # conservative keep_safe:,/ split 
         keep_safe = not any([flag_extreme_kd, flag_sequence_issue, flag_duplicate, flag_antigen_overlap])
 
         if flag_extreme_kd:

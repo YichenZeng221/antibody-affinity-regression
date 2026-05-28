@@ -1,25 +1,25 @@
 """Evaluate the trained SeqProFT mini model on the full test set.
 
-中文人话说明：
-这个脚本做“正式 test set evaluation”。
+:
+ test set evaluation
 
-它不会训练模型，也不会修改模型结构。
-它只做这些事：
+,
+:
 
-1. 读取 config.yaml
-2. 读取 data/processed/test.csv
-3. 加载 tokenizer
-4. 创建和训练时相同的模型结构
-5. 加载 outputs/checkpoints/seqproft_mvp.pt
-6. 在整个 test set 上跑 inference
-7. 计算 accuracy、confusion matrix、每个类别的 accuracy
-8. 保存每条样本的预测结果到 outputs/test_predictions.csv
+1.  config.yaml
+2.  data/processed/test.csv
+3.  tokenizer
+4. 
+5.  outputs/checkpoints/seqproft_mvp.pt
+6.  test set  inference
+7.  accuracyconfusion matrix accuracy
+8.  outputs/test_predictions.csv
 
-标签含义：
+:
     label 0 = light chain
     label 1 = heavy chain
 
-运行命令：
+:
     python scripts/evaluate_test_set.py
 """
 
@@ -31,9 +31,9 @@ import torch
 from torch.utils.data import DataLoader
 from transformers import AutoTokenizer
 
-# 当我们运行 `python scripts/evaluate_test_set.py` 时，
-# Python 默认会把 scripts/ 当成 import 起点。
-# 但 src/ 在项目根目录下，所以这里手动把项目根目录加入 sys.path。
+#  `python scripts/evaluate_test_set.py` ,
+# Python  scripts/  import 
+#  src/ , sys.path
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(PROJECT_ROOT))
 
@@ -48,11 +48,11 @@ PREDICTIONS_OUTPUT_PATH = PROJECT_ROOT / "outputs/test_predictions.csv"
 
 
 def safe_class_accuracy(correct: int, total: int) -> float:
-    """安全计算某个类别的 accuracy。
+    """ accuracy
 
-    中文人话说明：
-    如果某个 class 在 test set 里一条样本都没有，total 就是 0。
-    这时候不能除以 0，所以返回 0.0。
+    :
+     class  test set ,total  0
+     0, 0.0
     """
 
     if total == 0:
@@ -61,7 +61,7 @@ def safe_class_accuracy(correct: int, total: int) -> float:
 
 
 def main() -> None:
-    """主评估流程。"""
+    """"""
 
     if not TEST_CSV_PATH.exists():
         raise FileNotFoundError(
@@ -75,13 +75,13 @@ def main() -> None:
 
     ensure_output_dirs()
 
-    # test set 为什么不能参与训练？
+    # test set ?
     #
-    # 人话解释：
-    # train set 是给模型学习用的。
-    # test set 是最后考试用的。
-    # 如果模型训练时看过 test set，就像考试前已经看过答案，
-    # 那 test accuracy 就不再公平。
+    # :
+    # train set 
+    # test set 
+    #  test set,,
+    #  test accuracy 
     config = load_config("config.yaml")
     device = get_device()
     print(f"Using device: {device}")
@@ -130,21 +130,21 @@ def main() -> None:
     )
     total_wrong = total_samples - total_correct
 
-    # test accuracy 代表什么？
+    # test accuracy ?
     #
-    # 人话解释：
-    # test accuracy = test set 上预测正确的比例。
-    # 例如 100 条 test samples 里预测对 90 条，accuracy 就是 0.90。
+    # :
+    # test accuracy = test set 
+    #  100  test samples  90 ,accuracy  0.90
     test_accuracy = safe_class_accuracy(total_correct, total_samples)
 
-    # Confusion matrix 怎么看？
+    # Confusion matrix ?
     #
-    # 对二分类，这里用四个数字：
+    # ,:
     #
-    # true 0 predicted 0：light chain 被正确预测成 light
-    # true 0 predicted 1：light chain 被错误预测成 heavy
-    # true 1 predicted 0：heavy chain 被错误预测成 light
-    # true 1 predicted 1：heavy chain 被正确预测成 heavy
+    # true 0 predicted 0:light chain  light
+    # true 0 predicted 1:light chain  heavy
+    # true 1 predicted 0:heavy chain  light
+    # true 1 predicted 1:heavy chain  heavy
     confusion = {
         (0, 0): 0,
         (0, 1): 0,
@@ -160,12 +160,12 @@ def main() -> None:
     class_0_accuracy = safe_class_accuracy(confusion[(0, 0)], class_0_total)
     class_1_accuracy = safe_class_accuracy(confusion[(1, 1)], class_1_total)
 
-    # 为什么要看每个 class 的 accuracy？
+    #  class  accuracy?
     #
-    # 人话解释：
-    # 总 accuracy 可能隐藏问题。
-    # 如果 test set 里 heavy 很多、light 很少，模型全猜 heavy 也可能总分不低。
-    # 分别看 light accuracy 和 heavy accuracy，可以知道模型是不是偏向某一类。
+    # :
+    #  accuracy 
+    #  test set  heavy light , heavy 
+    #  light accuracy  heavy accuracy,
     print()
     print("Test set evaluation")
     print("Label meaning: 0 = light chain, 1 = heavy chain")
@@ -183,9 +183,9 @@ def main() -> None:
 
     raw_test_dataframe = pd.read_csv(TEST_CSV_PATH)
 
-    # 新版 processed CSV 会包含 pdb/chain/chain_type。
-    # 为了让脚本对旧 CSV 也不直接崩掉，如果缺列就填空字符串。
-    # 训练和评估真正需要的是 sequence,label；metadata 主要用于分析。
+    #  processed CSV  pdb/chain/chain_type
+    #  CSV ,
+    #  sequence,label;metadata 
     for metadata_column in ["pdb", "chain", "chain_type"]:
         if metadata_column not in raw_test_dataframe.columns:
             raw_test_dataframe[metadata_column] = ""
@@ -235,13 +235,13 @@ def main() -> None:
     )
     predictions_dataframe.to_csv(PREDICTIONS_OUTPUT_PATH, index=False)
 
-    # 为什么要保存 predictions.csv？
+    #  predictions.csv?
     #
-    # 人话解释：
-    # 只看一个 accuracy 数字不够。
-    # 保存每条样本的预测，可以让我们之后回头分析：
-    # 哪些 PDB、哪些 chain 容易错？
-    # 模型是不是总把 light 误判成 heavy？
+    # :
+    #  accuracy 
+    # ,:
+    #  PDB chain ?
+    #  light  heavy?
     print()
     print(f"Saved test predictions to {PREDICTIONS_OUTPUT_PATH}")
 

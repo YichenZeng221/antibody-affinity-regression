@@ -1,15 +1,15 @@
 """Create presentation figures from unified affinity ablation results.
 
-中文人话说明：
-这个脚本只读取已经生成好的 ``ablation_results.csv``。
-它不会训练模型，不会重新切分 dataset，也不会改 prediction 文件。
+:
+ ``ablation_results.csv``
+, dataset, prediction 
 
-输出内容：
-1. 一份适合复制到汇报里的 Markdown 表格；
-2. 模型 MAE 和 mean baseline MAE 的对照柱状图；
-3. MAE / RMSE / Spearman 的 ablation 指标图；
-4. MAE bar + Spearman dot + baseline line 的综合图；
-5. best model 的简短 Markdown 摘要。
+:
+1.  Markdown ;
+2.  MAE  mean baseline MAE ;
+3. MAE / RMSE / Spearman  ablation ;
+4. MAE bar + Spearman dot + baseline line ;
+5. best model  Markdown 
 """
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ from pathlib import Path
 
 import matplotlib
 
-# 汇报脚本只保存 PNG，不弹出交互窗口；Agg backend 在 terminal/服务器环境更稳。
+#  PNG,;Agg backend  terminal/
 matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
@@ -43,7 +43,7 @@ BEST_MODEL_PATH = OUTPUT_DIR / "best_model_summary.md"
 
 BEST_MODEL_NAME = "unified_no_high_risk"
 
-# 同一套颜色让图和表更容易对应。
+# 
 DATASET_COLORS = {
     "unified_full_629": "#3b82f6",
     "unified_no_peptide": "#f59e0b",
@@ -143,7 +143,7 @@ def make_model_vs_baseline_mae(results: pd.DataFrame) -> None:
     ax.legend()
     ax.grid(axis="y", alpha=0.25)
 
-    # 给每根柱子加数值，汇报时不用再查 CSV。
+    # , CSV
     ax.bar_label(baseline_bars, fmt="%.3f", padding=3, fontsize=8)
     ax.bar_label(model_bars, fmt="%.3f", padding=3, fontsize=8)
     fig.tight_layout()
@@ -180,11 +180,11 @@ def make_ablation_metrics(results: pd.DataFrame) -> None:
 def make_mae_spearman_baseline_figure(results: pd.DataFrame) -> None:
     """Plot MAE bars, Spearman dots, and mean-baseline MAE line.
 
-    中文人话说明：
-    - bar：模型 Test MAE，越低越好；
-    - dashed line：mean baseline MAE，bar 低于线才说明 MAE 超过 baseline；
-    - dot：Test Spearman，越高说明排序越好。
-    因为 MAE 和 Spearman 单位不同，所以 Spearman 放在右侧 y-axis。
+    :
+    - bar: Test MAE,;
+    - dashed line:mean baseline MAE,bar  MAE  baseline;
+    - dot:Test Spearman,
+     MAE  Spearman , Spearman  y-axis
     """
 
     x = np.arange(len(results))
@@ -233,7 +233,7 @@ def make_mae_spearman_baseline_figure(results: pd.DataFrame) -> None:
     spearman_axis.set_ylabel("Test Spearman (higher is better)")
     spearman_axis.set_ylim(0, max(0.6, float(results["test_Spearman"].max()) * 1.18))
 
-    # 给 Spearman 点标数字，方便做 slides 时直接读值。
+    #  Spearman , slides 
     for index, value in enumerate(results["test_Spearman"]):
         spearman_axis.annotate(
             f"{value:.3f}",

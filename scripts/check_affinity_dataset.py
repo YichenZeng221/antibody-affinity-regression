@@ -1,12 +1,12 @@
 """Check the affinity regression train/val/test CSV files.
 
-中文人话说明：
-这个脚本只检查数据，不训练模型。
-它帮助我们确认：
-- 每个 split 有多少样本
-- target 数值范围是否正常
-- split 有没有明显泄漏
-- sequence 是否在 train/val/test 之间重复
+:
+,
+:
+-  split 
+- target 
+- split 
+- sequence  train/val/test 
 """
 
 import argparse
@@ -26,8 +26,8 @@ SPLITS = ["train", "val", "test"]
 def parse_args() -> argparse.Namespace:
     """Read command line arguments.
 
-    默认仍然检查 config_affinity.yaml 指向的数据。
-    传 --config 可以检查 clean_v2 或 TDC v1 的数据。
+     config_affinity.yaml 
+     --config  clean_v2  TDC v1 
     """
 
     parser = argparse.ArgumentParser(description="Check affinity regression CSV files.")
@@ -38,10 +38,10 @@ def parse_args() -> argparse.Namespace:
 def load_split(split_name: str, csv_path: str, target_column: str) -> pd.DataFrame:
     """Load one split CSV and check required columns.
 
-    中文人话说明：
-    这个检查像“开箱验货”：
-    在训练前先确认 CSV 里真的有模型需要的列。
-    如果列名错了，训练时才报错会更难 debug。
+    :
+    :
+     CSV 
+    , debug
     """
 
     csv_path = Path(csv_path)
@@ -66,9 +66,9 @@ def load_split(split_name: str, csv_path: str, target_column: str) -> pd.DataFra
 def print_length_stats(dataframe: pd.DataFrame, column_name: str) -> None:
     """Print min/max/mean length for one sequence column.
 
-    序列长度很重要：
-    - 太长会被 tokenizer truncation 截断。
-    - train/test 长度分布差很多，模型可能泛化更难。
+    :
+    -  tokenizer truncation 
+    - train/test ,
     """
 
     lengths = dataframe[column_name].astype(str).str.len()
@@ -81,8 +81,8 @@ def print_length_stats(dataframe: pd.DataFrame, column_name: str) -> None:
 def print_split_summary(split_name: str, dataframe: pd.DataFrame, target_column: str) -> None:
     """Print basic stats for one split.
 
-    target min/max/mean/std 可以帮助我们看 train/val/test 分布是否离谱。
-    如果 test target 分布和 train 完全不同，评估会非常困难。
+    target min/max/mean/std  train/val/test 
+     test target  train ,
     """
 
     print("=" * 80)
@@ -113,10 +113,10 @@ def print_split_summary(split_name: str, dataframe: pd.DataFrame, target_column:
 def print_overlap(split_dataframes: dict[str, pd.DataFrame], column_name: str) -> None:
     """Check overlap between train/val/test for one column.
 
-    中文人话说明：
-    overlap 是数据泄漏风险。
-    如果同一条 sequence 同时出现在 train 和 test，
-    模型可能不是真正学会泛化，而是见过很像的输入。
+    :
+    overlap 
+     sequence  train  test,
+    ,
     """
 
     print("=" * 80)

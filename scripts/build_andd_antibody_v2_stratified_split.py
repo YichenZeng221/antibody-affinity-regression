@@ -1,17 +1,17 @@
 """Build a stratified antigen-level split for ANDD antibody v2.
 
-中文人话说明：
-旧 split 已经保证 antigen 不泄漏，但 val/test 对 target 尾部的覆盖取决于随机分组。
-这个脚本仍然以 `antigen_sequence` 为最小分配单位，同时按每个 antigen group
-的 target 均值做 low/mid/high 分层，并明确让 val/test 都包含 P5 以下和 P95
-以上的样本。这样后续实验可以检查 split coverage 是否影响 regression-to-the-mean。
+:
+ split  antigen , val/test  target 
+ `antigen_sequence` , antigen group
+ target  low/mid/high , val/test  P5  P95
+ split coverage  regression-to-the-mean
 
-重要：
-- 本脚本只创建新的 split 和诊断文件，不训练模型。
-- 旧 `expanded_affinity_antibody_v2/` 目录不会被覆盖。
-- all-CDR baseline 需要标准 IMGT CDR 列，因此新 split 会复用现有
-  `expanded_affinity_antibody_v2_cdr_annotated/` 中同一 candidate_id 的
-  AbNumber + IMGT 提取结果，而不是使用未核验的 source-provided CDR。
+:
+-  split ,
+-  `expanded_affinity_antibody_v2/` 
+- all-CDR baseline  IMGT CDR , split 
+  `expanded_affinity_antibody_v2_cdr_annotated/`  candidate_id 
+  AbNumber + IMGT , source-provided CDR
 """
 
 from __future__ import annotations
@@ -55,7 +55,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 
 
 def load_full_rows() -> tuple[pd.DataFrame, dict[str, pd.DataFrame]]:
-    """读取旧 split，并用已经完成的标准 CDR annotation 覆盖 CDR 字段。"""
+    """ split, CDR annotation  CDR """
 
     old_splits: dict[str, pd.DataFrame] = {}
     raw_frames: list[pd.DataFrame] = []
@@ -74,7 +74,7 @@ def load_full_rows() -> tuple[pd.DataFrame, dict[str, pd.DataFrame]]:
     if full[ID_COLUMN].duplicated().any() or annotations[ID_COLUMN].duplicated().any():
         raise ValueError("candidate_id must be unique before CDR annotation join.")
 
-    # 原始 ANDD CSV 可能已经带有 CDR 字段；正式 baseline 只使用标准 IMGT 重提取的版本。
+    #  ANDD CSV  CDR ; baseline  IMGT 
     full = full.drop(columns=[column for column in CDR_COLUMNS + CDR_AUDIT_COLUMNS if column in full.columns])
     full = full.merge(annotations, how="left", on=ID_COLUMN, validate="one_to_one")
     required_annotation_columns = CDR_COLUMNS + [
@@ -85,7 +85,7 @@ def load_full_rows() -> tuple[pd.DataFrame, dict[str, pd.DataFrame]]:
     ]
     if full[required_annotation_columns].isna().any().any():
         raise ValueError("Some rows did not match existing standard CDR annotation.")
-    # 成功提取时 error 列应当为空，这不是缺失 annotation。
+    #  error , annotation
     full[["heavy_cdr_error", "light_cdr_error"]] = full[
         ["heavy_cdr_error", "light_cdr_error"]
     ].fillna("")
@@ -95,7 +95,7 @@ def load_full_rows() -> tuple[pd.DataFrame, dict[str, pd.DataFrame]]:
 
 
 def build_group_table(full: pd.DataFrame, p05: float, p95: float) -> pd.DataFrame:
-    """每个 antigen 只分配一次，并给 antigen target 均值打 low/mid/high 标签。"""
+    """ antigen , antigen target  low/mid/high """
 
     groups = (
         full.groupby(GROUP_COLUMN, as_index=False)
@@ -110,7 +110,7 @@ def build_group_table(full: pd.DataFrame, p05: float, p95: float) -> pd.DataFram
     groups["has_p05_tail"] = groups["target_min"] <= p05
     groups["has_p95_tail"] = groups["target_max"] >= p95
 
-    # rank 后 qcut 可以避免均值重复时无法切成三层，并保持 group 数量接近。
+    # rank  qcut , group 
     groups["target_stratum"] = pd.qcut(
         groups["target_mean"].rank(method="first"),
         q=3,
@@ -120,12 +120,12 @@ def build_group_table(full: pd.DataFrame, p05: float, p95: float) -> pd.DataFram
 
 
 def choose_tail_anchor(pool: pd.DataFrame, split: str, direction: str, used: set[str]) -> str:
-    """挑一个 tail antigen 给 val/test，确保两者都实际覆盖 P5/P95。"""
+    """ tail antigen  val/test, P5/P95"""
 
     available = pool[~pool[GROUP_COLUMN].isin(used)].copy()
     if available.empty:
         raise ValueError(f"Not enough antigen groups to anchor {direction} tail for {split}.")
-    # 优先小 group，减少强制 anchor 对整体 8:1:1 比例的扰动；同大小时选更外侧的 tail。
+    #  group, anchor  8:1:1 ; tail
     ascending = direction == "low"
     available = available.sort_values(
         ["rows", "target_mean", GROUP_COLUMN],
@@ -137,7 +137,7 @@ def choose_tail_anchor(pool: pd.DataFrame, split: str, direction: str, used: set
 
 
 def assign_stratified_groups(groups: pd.DataFrame) -> dict[str, str]:
-    """在每个 mean-target stratum 内以 group 为单位做 8:1:1 分配。"""
+    """ mean-target stratum  group  8:1:1 """
 
     assignments: dict[str, str] = {}
     used: set[str] = set()
@@ -157,7 +157,7 @@ def assign_stratified_groups(groups: pd.DataFrame) -> dict[str, str]:
         }
         assigned_rows = {split: 0 for split in SPLITS}
 
-        # 预先固定的 tail groups 也算入其所在 stratum 的 row budget。
+        #  tail groups  stratum  row budget
         for _, row in stratum_groups.iterrows():
             group_key = str(row[GROUP_COLUMN])
             if group_key in assignments:
@@ -167,7 +167,7 @@ def assign_stratified_groups(groups: pd.DataFrame) -> dict[str, str]:
         rng.shuffle(remaining)
         remaining.sort(key=lambda row: int(row["rows"]), reverse=True)
         for row in remaining:
-            # 当前离目标 row 数最欠缺的 split 优先接收下一个 antigen group。
+            #  row  split  antigen group
             split = max(
                 SPLITS,
                 key=lambda name: (desired[name] - assigned_rows[name], -assigned_rows[name]),
@@ -182,7 +182,7 @@ def assign_stratified_groups(groups: pd.DataFrame) -> dict[str, str]:
 
 
 def numeric_summary(values: pd.Series) -> dict:
-    """输出 report 需要的 target distribution 数字，包括 P5/P95。"""
+    """ report  target distribution , P5/P95"""
 
     target = pd.to_numeric(values, errors="raise")
     return {
@@ -197,7 +197,7 @@ def numeric_summary(values: pd.Series) -> dict:
 
 
 def split_summary(split_frames: dict[str, pd.DataFrame], global_p05: float, global_p95: float) -> dict:
-    """汇总新 split 的规模、target、stratum 与 tail coverage。"""
+    """ split targetstratum  tail coverage"""
 
     result: dict[str, dict] = {}
     for split, frame in split_frames.items():
@@ -223,7 +223,7 @@ def split_summary(split_frames: dict[str, pd.DataFrame], global_p05: float, glob
 
 
 def overlaps(split_frames: dict[str, pd.DataFrame]) -> dict[str, int]:
-    """检查 antigen_sequence 是否发生跨 split 泄漏。"""
+    """ antigen_sequence  split """
 
     keys = {
         split: set(frame[GROUP_COLUMN].astype(str))
@@ -242,7 +242,7 @@ def plot_old_vs_new(
     global_p05: float,
     global_p95: float,
 ) -> None:
-    """用相同 histogram bins 对比旧/新 val-test tail coverage。"""
+    """ histogram bins / val-test tail coverage"""
 
     values = pd.concat(
         [frame[TARGET_COLUMN] for frame in list(old_splits.values()) + list(new_splits.values())],
@@ -277,7 +277,7 @@ def plot_old_vs_new(
 
 
 def write_markdown(summary: dict) -> None:
-    """写一份人类可读的 split 诊断摘要。"""
+    """ split """
 
     new = summary["new_split"]
     old = summary["old_split"]

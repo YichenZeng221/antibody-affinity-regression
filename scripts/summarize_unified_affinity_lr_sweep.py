@@ -1,14 +1,14 @@
 """Summarize finished learning-rate runs without training again.
 
-中文人话说明：
-这个脚本只做“整理结果”：
-1. 从每个 sweep config 找到 checkpoint 和 prediction CSV；
-2. 从 checkpoint 读取训练结束时保存的 validation metrics；
-3. 从 prediction CSV 重新计算 test metrics 和 prediction 分布；
-4. 用同一份 unified train/test split 计算 mean baseline；
-5. 输出一张 CSV 和一份 Markdown 报告。
+:
+:
+1.  sweep config  checkpoint  prediction CSV;
+2.  checkpoint  validation metrics;
+3.  prediction CSV  test metrics  prediction ;
+4.  unified train/test split  mean baseline;
+5.  CSV  Markdown 
 
-它不会调用训练脚本，也不会修改 model / dataset。
+, model / dataset
 """
 
 from __future__ import annotations
@@ -46,9 +46,9 @@ def load_config(config_path: Path) -> dict:
 def compute_metrics(true_values: pd.Series, predicted_values: pd.Series) -> dict:
     """Compute regression metrics from saved predictions.
 
-    中文人话说明：
-    prediction CSV 里已经有 true/predicted target。
-    这里重新计算一次，保证四个 learning rate 用完全同一套算法汇总。
+    :
+    prediction CSV  true/predicted target
+    , learning rate 
     """
 
     true = pd.to_numeric(true_values, errors="coerce")
@@ -81,9 +81,9 @@ def read_final_val_metrics(checkpoint_path: Path) -> dict:
 def compute_mean_baseline(config: dict) -> dict:
     """Compute train-mean baseline on the same unified test split.
 
-    中文人话说明：
-    mean baseline 就是“所有 test 样本都猜 train target 平均值”。
-    它是回归任务很重要的最低门槛：模型至少应该努力超过它。
+    :
+    mean baseline  test  train target 
+    :
     """
 
     target_column = config.get("target_column", "neg_log10_affinity")

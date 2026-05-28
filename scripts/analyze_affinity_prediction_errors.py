@@ -1,17 +1,17 @@
 """Analyze test prediction errors for TDC plus SAbDab supplement v1.
 
-中文人话说明：
-这个脚本只分析已经保存好的 prediction CSV，不训练模型。
+:
+ prediction CSV,
 
-我们把两份文件对齐：
-1. predictions CSV：有 true / predicted / error。
-2. test CSV：有 source 和 antigen_sequence 等 metadata。
+:
+1. predictions CSV: true / predicted / error
+2. test CSV: source  antigen_sequence  metadata
 
-这样可以回答：
-- 模型到底是数值误差大，还是排序完全坏了？
-- 预测范围有没有比真实 target 范围窄很多？
-- 低/中/高 target 哪个区间 MAE 最大？
-- source 或 antigen length 是否和误差有关？
+:
+- ,?
+-  target ?
+- // target  MAE ?
+- source  antigen length ?
 """
 
 from __future__ import annotations
@@ -36,8 +36,8 @@ OUTPUT_DIR = PROJECT_ROOT / "outputs" / "error_analysis" / "tdc_plus_sabdab_supp
 JSON_REPORT_PATH = OUTPUT_DIR / "error_analysis_report.json"
 MARKDOWN_REPORT_PATH = OUTPUT_DIR / "error_analysis_report.md"
 
-# Matplotlib 在脚本模式下也会写字体缓存。
-# 缓存放在项目 outputs 里，避免 IDE/沙盒环境写用户 home 失败。
+# Matplotlib 
+#  outputs , IDE/ home 
 MPL_CACHE_DIR = PROJECT_ROOT / "outputs" / "matplotlib_cache"
 MPL_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 os.environ.setdefault("MPLCONFIGDIR", str(MPL_CACHE_DIR))
@@ -94,7 +94,7 @@ def load_and_merge_inputs() -> pd.DataFrame:
         missing_ids = merged.loc[merged["test_source"].isna(), "sample_id"].astype(str).tolist()
         raise ValueError(f"Prediction sample IDs missing from test CSV: {missing_ids[:10]}")
 
-    # 重新算 error，避免旧 CSV 中 error 列被手动改坏后分析还悄悄继续。
+    #  error, CSV  error 
     merged[TRUE_COLUMN] = pd.to_numeric(merged[TRUE_COLUMN], errors="raise")
     merged[PRED_COLUMN] = pd.to_numeric(merged[PRED_COLUMN], errors="raise")
     merged[ERROR_COLUMN] = merged[PRED_COLUMN] - merged[TRUE_COLUMN]

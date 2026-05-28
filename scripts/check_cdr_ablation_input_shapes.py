@@ -1,9 +1,9 @@
 """Dry-run the CDR ablation input shapes without training a model.
 
-中文人话说明：
-这个脚本只拿每个 mode 的第一个 filtered training sample，
-检查 config 选择了哪些 CDR tensor、它们 padding 后的 shape 是什么。
-它不 forward ESM2、不写 checkpoint，也不训练。
+:
+ mode  filtered training sample,
+ config  CDR tensor padding  shape 
+ forward ESM2 checkpoint,
 """
 
 from __future__ import annotations

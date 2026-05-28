@@ -1,13 +1,13 @@
 """Error analysis for ANDD antibody v2 all-CDR pooled baseline.
 
-中文人话说明：
-这个脚本只分析已经生成的 test predictions，不训练模型，也不修改数据。
+:
+ test predictions,,
 
-它会回答几个问题：
-- 最大错误样本是谁？
-- 模型是否 regression-to-mean：低 target 被高估，高 target 被低估？
-- error 是否和 source / antigen / sequence length / CDR length 有关系？
-- low target 为什么最难？
+:
+- ?
+-  regression-to-mean: target , target ?
+- error  source / antigen / sequence length / CDR length ?
+- low target ?
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ import math
 import os
 from pathlib import Path
 
-# 让 matplotlib/font cache 写到项目可写目录，避免 macOS 用户目录 cache 权限 warning。
+#  matplotlib/font cache , macOS  cache  warning
 os.environ.setdefault(
     "MPLCONFIGDIR",
     str(Path(__file__).resolve().parents[1] / ".matplotlib_cache"),
@@ -46,21 +46,21 @@ CDR_COLUMNS = ["HCDR1", "HCDR2", "HCDR3", "LCDR1", "LCDR2", "LCDR3"]
 
 
 def safe_spearman(left: pd.Series, right: pd.Series) -> float | None:
-    """Spearman 是 ranking correlation；如果常数列导致 undefined，就返回 None。"""
+    """Spearman  ranking correlation; undefined, None"""
 
     value = pd.to_numeric(left, errors="coerce").corr(pd.to_numeric(right, errors="coerce"), method="spearman")
     return None if pd.isna(value) else float(value)
 
 
 def safe_pearson(left: pd.Series, right: pd.Series) -> float | None:
-    """普通线性相关。用于看 error 是否随 target 系统变化。"""
+    """ error  target """
 
     value = pd.to_numeric(left, errors="coerce").corr(pd.to_numeric(right, errors="coerce"), method="pearson")
     return None if pd.isna(value) else float(value)
 
 
 def metric_dict(df: pd.DataFrame) -> dict:
-    """计算整体 regression metrics。"""
+    """ regression metrics"""
 
     true = pd.to_numeric(df[TRUE_COL], errors="coerce")
     pred = pd.to_numeric(df[PRED_COL], errors="coerce")
@@ -88,7 +88,7 @@ def metric_dict(df: pd.DataFrame) -> dict:
 
 
 def add_analysis_columns(df: pd.DataFrame) -> pd.DataFrame:
-    """增加 error、bin、长度、CDR length 等分析列。"""
+    """ errorbinCDR length """
 
     out = df.copy()
     out["true_target"] = pd.to_numeric(out[TRUE_COL], errors="coerce")
@@ -97,7 +97,7 @@ def add_analysis_columns(df: pd.DataFrame) -> pd.DataFrame:
     out["absolute_error"] = out["error"].abs()
     out["fold_error"] = 10 ** out["absolute_error"]
 
-    # target bin 用 quantile，保证 low/mid/high 的样本数相近。
+    # target bin  quantile, low/mid/high 
     ranked = out["true_target"].rank(method="first")
     out["target_bin"] = pd.qcut(ranked, q=3, labels=["low_target", "mid_target", "high_target"])
 
@@ -105,7 +105,7 @@ def add_analysis_columns(df: pd.DataFrame) -> pd.DataFrame:
         if seq_col in out.columns:
             out[f"{seq_col}_len"] = out[seq_col].fillna("").astype(str).str.len()
 
-    # ANDD split 里已有 heavy_len/light_len/antigen_len；如果存在就优先保留，更方便 groupby。
+    # ANDD split  heavy_len/light_len/antigen_len;, groupby
     for cdr_col in CDR_COLUMNS:
         out[f"{cdr_col}_len"] = out[cdr_col].fillna("").astype(str).str.len()
     out["total_cdr_len"] = sum(out[f"{cdr_col}_len"] for cdr_col in CDR_COLUMNS)
@@ -127,13 +127,13 @@ def add_analysis_columns(df: pd.DataFrame) -> pd.DataFrame:
         labels=["short_light", "mid_light", "long_light"],
     )
 
-    # peptide/epitope-like 是一个启发式标记：短 antigen 可能更像 epitope peptide。
+    # peptide/epitope-like : antigen  epitope peptide
     out["peptide_or_epitope_like_antigen"] = pd.to_numeric(out.get("antigen_len", out["antigen_sequence_len"]), errors="coerce") < 30
     return out
 
 
 def group_metrics(df: pd.DataFrame, group_column: str, label: str) -> list[dict]:
-    """按某个字段分组计算 MAE/RMSE/mean error。"""
+    """ MAE/RMSE/mean error"""
 
     rows = []
     if group_column not in df.columns:
@@ -158,7 +158,7 @@ def group_metrics(df: pd.DataFrame, group_column: str, label: str) -> list[dict]
 
 
 def plot_true_vs_pred(df: pd.DataFrame, path: Path) -> None:
-    """画 true vs predicted，看整体校准和是否压缩在均值附近。"""
+    """ true vs predicted,"""
 
     plt.figure(figsize=(6, 5))
     plt.scatter(df["true_target"], df["predicted_target"], alpha=0.75)
@@ -177,7 +177,7 @@ def plot_true_vs_pred(df: pd.DataFrame, path: Path) -> None:
 
 
 def plot_residual_vs_true(df: pd.DataFrame, path: Path) -> None:
-    """画 residual vs true，直接看 low/high target 的系统偏差。"""
+    """ residual vs true, low/high target """
 
     plt.figure(figsize=(6, 5))
     colors = {"low_target": "#d95f02", "mid_target": "#1b9e77", "high_target": "#7570b3"}
@@ -194,7 +194,7 @@ def plot_residual_vs_true(df: pd.DataFrame, path: Path) -> None:
 
 
 def write_report(df: pd.DataFrame, metrics: dict, group_rows: list[dict]) -> None:
-    """写 Markdown 报告。"""
+    """ Markdown """
 
     top_errors = df.sort_values("absolute_error", ascending=False).head(10)
     bin_rows = [row for row in group_rows if row["group_type"] == "target_bin"]

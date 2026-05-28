@@ -1,8 +1,8 @@
 """Single-batch dry-run for tail-aware cross-attention; no training is performed.
 
-中文说明：
-这个脚本只读取一个 train batch、执行一次 forward，并计算 tail-weighted MSE。
-它不会调用 backward、optimizer.step 或保存 checkpoint。
+:
+ train batch forward, tail-weighted MSE
+ backwardoptimizer.step  checkpoint
 """
 
 from __future__ import annotations

@@ -1,9 +1,9 @@
 """Evaluate tail-aware ANDD stratified cross-attention checkpoints after manual training.
 
-中文说明：
-这个脚本不会训练模型。它读取 tail-aware training 保存的四种 validation-selected
-checkpoint，在同一个 test split 上统一评估，并与已有 pooled / cross-attention
-baseline 对比。所有新增 predictions、报告和图片写入新目录。
+:
+ tail-aware training  validation-selected
+checkpoint, test split , pooled / cross-attention
+baseline  predictions
 """
 
 from __future__ import annotations
@@ -69,7 +69,7 @@ def fmt(value: float | None) -> str:
 
 
 def policy_labels(config: dict) -> dict[str, str]:
-    """用 config 标签区分 w2/w3 predictions，避免报告里名字混淆。"""
+    """ config  w2/w3 predictions,"""
 
     prefix = str(config.get("experiment_label", "Tail-aware"))
     return {

@@ -1,18 +1,18 @@
 """Post-hoc linear calibration for the ANDD antibody v2 all-CDR pooled model.
 
-中文人话说明：
-模型已经训练结束了，这个脚本不会重新训练模型、不会修改 checkpoint、不会改 dataset。
+:
+, checkpoint dataset
 
-它做的是“预测值校准”：
-1. 如果没有 validation predictions，就从已有 best checkpoint 在 val set 上跑 inference。
-2. 只用 validation set 学一个简单直线：
+:
+1.  validation predictions, best checkpoint  val set  inference
+2.  validation set :
        calibrated_prediction = a * raw_prediction + b
-3. 把同一条直线应用到 test prediction。
-4. 对比 raw vs calibrated 是否让预测范围更接近真实范围，以及 low/high target MAE 是否下降。
+3.  test prediction
+4.  raw vs calibrated , low/high target MAE 
 
-重要原则：
-- 校准参数只从 validation set 学，不可以用 test labels 拟合。
-- 若 a > 0，线性校准不会改变样本排名，所以 Spearman 理论上基本不变。
+:
+-  validation set , test labels 
+-  a > 0,, Spearman 
 """
 
 from __future__ import annotations
@@ -31,7 +31,7 @@ import pandas as pd
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(PROJECT_ROOT))
 
-# matplotlib 缓存写进项目目录，避免系统用户 cache 不可写导致 warning。
+# matplotlib , cache  warning
 os.environ.setdefault("MPLCONFIGDIR", str(PROJECT_ROOT / ".matplotlib_cache"))
 
 import matplotlib

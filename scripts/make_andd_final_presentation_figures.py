@@ -1,9 +1,9 @@
 """Make final presentation figures for ANDD antibody v2 affinity regression.
 
-中文说明：
-这份脚本只读取已有 prediction / metrics CSV，用 pandas + matplotlib 画汇报图。
-它不会训练模型，不会修改 dataset，也不会覆盖已有实验结果，只在 final_reports/figures
-下面生成新的 presentation figures。
+:
+ prediction / metrics CSV, pandas + matplotlib 
+, dataset,, final_reports/figures
+ presentation figures
 """
 
 from __future__ import annotations
@@ -186,7 +186,7 @@ def figure3_residual_vs_true(predictions: list[pd.DataFrame]) -> Path:
             edgecolor="white",
             linewidth=0.35,
         )
-        # 中文说明：负斜率代表 low target 被高估、high target 被低估。
+        # : low target high target 
         coeff = np.polyfit(df["true_neg_log10_affinity"], df["residual"], 1)
         xs = np.linspace(x_min, x_max, 100)
         ax.plot(xs, coeff[0] * xs + coeff[1], color="black", linewidth=1.4)
@@ -348,7 +348,7 @@ def write_summary(paths: dict[str, Path], multiseed_summary: pd.DataFrame, conta
     lines = [
         "# ANDD Final Presentation Figures Summary",
         "",
-        "这 5 张图只读取已有 CSV / prediction outputs；没有训练模型，没有修改 dataset。",
+        " 5  CSV / prediction outputs;, dataset",
         "",
         "## Figures",
     ]
@@ -359,11 +359,11 @@ def write_summary(paths: dict[str, Path], multiseed_summary: pd.DataFrame, conta
         "",
         "## How To Present",
         "",
-        "1. **Figure 1**: train/val/test 上 prediction spread 都远低于 1，说明 compression 从 train 就存在，不像典型 overfit。",
-        "2. **Figure 2**: true vs predicted 中点云被压在中间，直观看到模型不愿预测极端值。",
-        "3. **Figure 3**: residual vs true 呈 downward trend，说明 low target 被高估、high target 被低估，也就是 regression-to-the-mean。",
-        "4. **Figure 4**: multi-seed 后 tail-aware w2 改善 spread 和 tail MAE，但没有稳定赢 MAE/Spearman，避免 single-seed overclaim。",
-        "5. **Figure 5**: CDR3 contact features 在 contact-covered subset 内有小幅增量，但没有让 pred_std/true_std 接近 1，因此还不是最终解法。",
+        "1. **Figure 1**: train/val/test  prediction spread  1, compression  train , overfit",
+        "2. **Figure 2**: true vs predicted ,",
+        "3. **Figure 3**: residual vs true  downward trend, low target high target , regression-to-the-mean",
+        "4. **Figure 4**: multi-seed  tail-aware w2  spread  tail MAE, MAE/Spearman, single-seed overclaim",
+        "5. **Figure 5**: CDR3 contact features  contact-covered subset , pred_std/true_std  1,",
         "",
         "## One-Sentence Takeaway",
         "",

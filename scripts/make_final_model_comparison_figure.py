@@ -1,16 +1,16 @@
 """Create final two-benchmark model comparison figure.
 
-中文人话说明：
-这张图用于 today summary。
+:
+ today summary
 
-重点：
-- unified_no_high_risk 和 ANDD antibody v2 是不同 test set。
-- 所以图里分成两个 panel / section。
-- 可以在同一个 benchmark 内比较模型，但不要跨 benchmark 直接比较 MAE。
+:
+- unified_no_high_risk  ANDD antibody v2  test set
+-  panel / section
+-  benchmark , benchmark  MAE
 
-图形编码：
-- bar: MAE，越低越好。
-- dot/line: Spearman，越高越好。
+:
+- bar: MAE,
+- dot/line: Spearman,
 """
 
 from __future__ import annotations
@@ -135,7 +135,7 @@ def make_plot(results: pd.DataFrame) -> None:
     ax_mae.set_xticks(x_positions)
     ax_mae.set_xticklabels(labels, fontsize=9)
 
-    # 灰色竖线把两个 benchmark 隔开，提醒读者不要跨不同 test set 直接比较。
+    #  benchmark , test set 
     separator_x = 4.5
     ax_mae.axvline(separator_x, color="#9CA3AF", linestyle="--", linewidth=1.4)
     ax_mae.text(2, ax_mae.get_ylim()[1] * 0.96, "unified_no_high_risk\n605-row benchmark", ha="center", va="top", fontsize=11)

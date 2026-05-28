@@ -1,19 +1,19 @@
 """Audit overlap between local SAbDab summary affinity rows and TDC v1.
 
-中文人话说明：
-这个脚本不训练模型，也不改已有 dataset。
-它把两份来源放在一起做审计：
+:
+, dataset
+:
 
-1. 本地 SAbDab summary TSV：
-   这里是一张结构 metadata 表，可能同一个 PDB 有多条 row，
-   因为一个结构里可以有多个 antibody/antigen chain 组合。
-2. TDC Protein_SAbDab v1：
-   这里是已经整理成 antibody-antigen affinity pair 的数据。
+1.  SAbDab summary TSV:
+    metadata , PDB  row,
+    antibody/antigen chain 
+2. TDC Protein_SAbDab v1:
+    antibody-antigen affinity pair 
 
-所以 overlap 最稳的第一口径是 PDB ID：
-SAbDab 的 ``pdb`` 对 TDC 的 ``Antibody_ID`` / ``antibody_id``。
-row-level 是否完全同一个样本还需要 sequence/chain 进一步核对，
-不能只看 PDB overlap 就直接说“标签完全相同”。
+ overlap  PDB ID:
+SAbDab  ``pdb``  TDC  ``Antibody_ID`` / ``antibody_id``
+row-level  sequence/chain ,
+ PDB overlap 
 """
 
 from __future__ import annotations
@@ -106,9 +106,9 @@ def is_valid_antigen_type(value: object) -> bool:
 def looks_suspicious_affinity_method(value: object) -> bool:
     """Flag PMID-like numeric affinity_method cells.
 
-    之前 clean_v2 已经看到过这类 metadata 错位：
-    affinity_method 本来应像 SPR / ITC / Other，
-    但有些格子却是 PMID 风格的纯数字。
+     clean_v2  metadata :
+    affinity_method  SPR / ITC / Other,
+     PMID 
     """
 
     text = str(value).strip()
@@ -133,8 +133,8 @@ def numeric_summary(series: pd.Series) -> dict:
 def prepare_summary_affinity_rows(summary: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
     """Mark non-empty/numeric/positive affinity rows.
 
-    affinity 要是正数，后面才可以做 ``-log10(affinity)`` regression target。
-    这里把 non-empty、numeric、positive 分开统计，方便定位 summary metadata 质量。
+    affinity , ``-log10(affinity)`` regression target
+     non-emptynumericpositive , summary metadata 
     """
 
     prepared = summary.copy()
@@ -159,9 +159,9 @@ def prepare_summary_affinity_rows(summary: pd.DataFrame) -> tuple[pd.DataFrame, 
 def add_supplement_flags(rows: pd.DataFrame) -> pd.DataFrame:
     """Judge whether missing TDC rows are plausible SAbDab supplement candidates.
 
-    这是 metadata-level 初筛，不等于最终能补。
-    通过这里的 row 还要重新从 PDB 提取 heavy/light/antigen sequences，
-    并检查序列重复、label 冲突和 split 策略。
+     metadata-level ,
+     row  PDB  heavy/light/antigen sequences,
+    label  split 
     """
 
     flagged = rows.copy()
@@ -180,9 +180,9 @@ def add_supplement_flags(rows: pd.DataFrame) -> pd.DataFrame:
         & flagged["has_antigen_chain"]
         & flagged["antigen_type_sequence_ok"]
     )
-    # 更保守的候选再去掉两个风险：
-    # 1. Hchain == Lchain，可能不是标准 heavy/light pair；
-    # 2. affinity_method 是纯数字，可能是 metadata 列错位。
+    # :
+    # 1. Hchain == Lchain, heavy/light pair;
+    # 2. affinity_method , metadata 
     flagged["conservative_supplement_candidate"] = (
         flagged["metadata_stage1_eligible"]
         & ~flagged["same_heavy_light_chain_id"]

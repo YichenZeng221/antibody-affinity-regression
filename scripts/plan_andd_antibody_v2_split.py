@@ -1,18 +1,18 @@
 """Plan conservative antibody-only ANDD v2 antigen-group split.
 
-中文人话说明：
-这个脚本只做 split 方案设计，不会创建正式 train.csv / val.csv / test.csv。
+:
+ split , train.csv / val.csv / test.csv
 
-我们读取上一阶段 `expanded_affinity_antibody_v2_audited_flags.csv`，
-只使用 `keep_safe=True` 的 rows，然后按 antigen_sequence 分组模拟 train/val/test。
-这样可以提前看：
+ `expanded_affinity_antibody_v2_audited_flags.csv`,
+ `keep_safe=True`  rows, antigen_sequence  train/val/test
+:
 
-- antigen group 有多少
-- 每个 split 大概多少 rows
-- target/source 分布是否平衡
-- 是否还存在 current unified test antigen overlap
+- antigen group 
+-  split  rows
+- target/source 
+-  current unified test antigen overlap
 
-正式 split 以后再单独创建，这里只输出 planning report。
+ split , planning report
 """
 
 from __future__ import annotations
@@ -40,13 +40,13 @@ RATIOS = {"train": 0.8, "val": 0.1, "test": 0.1}
 
 
 def bool_series(series: pd.Series) -> pd.Series:
-    """把 CSV 里可能是 bool 或字符串的列统一转成 bool。"""
+    """ CSV  bool  bool"""
 
     return series.astype(str).str.lower().isin({"true", "1", "yes"})
 
 
 def numeric_summary(values: pd.Series) -> dict:
-    """返回一列数字的常用统计。"""
+    """"""
 
     clean = pd.to_numeric(values, errors="coerce").dropna()
     if clean.empty:
@@ -62,7 +62,7 @@ def numeric_summary(values: pd.Series) -> dict:
 
 
 def summarize_split(split_df: pd.DataFrame) -> dict:
-    """汇总一个 split 的 rows、antigen groups、target/source 分布。"""
+    """ split  rowsantigen groupstarget/source """
 
     source_counts = split_df["source"].fillna("unknown").value_counts().to_dict()
     return {
@@ -74,12 +74,12 @@ def summarize_split(split_df: pd.DataFrame) -> dict:
 
 
 def greedy_antigen_group_split(df: pd.DataFrame) -> pd.DataFrame:
-    """按 antigen_sequence 分组，模拟 80/10/10 split。
+    """ antigen_sequence , 80/10/10 split
 
-    简单原则：
-    1. 同一个 antigen_sequence 的所有 rows 必须放在同一个 split。
-    2. 大 antigen group 先分配，尽量靠近目标 row 数。
-    3. 这是 plan，不是最终 split；之后可以进一步优化 target/source balance。
+    :
+    1.  antigen_sequence  rows  split
+    2.  antigen group , row 
+    3.  plan, split; target/source balance
     """
 
     groups = []
@@ -102,13 +102,13 @@ def greedy_antigen_group_split(df: pd.DataFrame) -> pd.DataFrame:
     assignments = {}
 
     for group in groups:
-        # 选择当前最需要 rows 的 split。
+        #  rows  split
         split = min(
             RATIOS.keys(),
             key=lambda name: (assigned_rows[name] + group["rows"] - target_rows[name], assigned_rows[name] / target_rows[name]),
         )
 
-        # 上面的 min 对超过目标的 split 可能不直观；这里用“填充比例”再做一次保守选择。
+        #  min  split ;
         split = min(RATIOS.keys(), key=lambda name: assigned_rows[name] / target_rows[name])
         assignments[group["antigen_sequence"]] = split
         assigned_rows[split] += group["rows"]
@@ -119,7 +119,7 @@ def greedy_antigen_group_split(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def markdown_table_from_source_counts(summary: dict) -> list[str]:
-    """把 source count 做成 Markdown table。"""
+    """ source count  Markdown table"""
 
     all_sources = sorted({source for item in summary.values() for source in item["source_counts"]})
     lines = ["| Split | Rows | Antigen groups | " + " | ".join(f"`{source}`" for source in all_sources) + " |"]
@@ -146,7 +146,7 @@ def main() -> None:
 
     all_summary = summarize_split(planned)
 
-    # overlap sanity checks。keep_safe 理论上已经没有 current unified antigen overlap，但这里再检查一次。
+    # overlap sanity checkskeep_safe  current unified antigen overlap,
     unified_test_overlap_rows = int(bool_series(planned.get("overlap_current_test_antigen", pd.Series(False, index=planned.index))).sum())
     unified_antigen_overlap_rows = int(bool_series(planned.get("flag_antigen_overlap", pd.Series(False, index=planned.index))).sum())
 

@@ -1,15 +1,15 @@
 """Visualize the Stage 1 affinity regression dataset.
 
-中文人话说明：
-这个脚本只负责“看数据”和“看预测结果”，不会训练模型，也不会改 CSV。
+:
+,, CSV
 
-我们现在最想确认几件事：
-1. train / val / test 的 target 分布是否差很多。
-2. heavy / light / antigen sequence 的长度分布是否差很多。
-3. 模型预测是不是集中在一个很窄的范围，比如一直猜 8.1 左右。
-4. fold error 是否有特别大的离群点。
+:
+1. train / val / test  target 
+2. heavy / light / antigen sequence 
+3. , 8.1 
+4. fold error 
 
-运行方式：
+:
     ./.venv/bin/python scripts/visualize_affinity_dataset.py
 """
 
@@ -20,9 +20,9 @@ import sys
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
-# Matplotlib 会创建字体缓存。
-# 有些 Mac / 沙盒环境里用户 home 下的默认缓存目录不可写，
-# 所以我们把缓存放到项目自己的 outputs/matplotlib_cache/ 里。
+# Matplotlib 
+#  Mac /  home ,
+#  outputs/matplotlib_cache/ 
 MPL_CACHE_DIR = PROJECT_ROOT / "outputs" / "matplotlib_cache"
 MPL_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 os.environ.setdefault("MPLCONFIGDIR", str(MPL_CACHE_DIR))
@@ -35,8 +35,8 @@ import numpy as np
 import pandas as pd
 
 
-# Agg 是 matplotlib 的“只保存图片、不弹窗口”后端。
-# 在脚本/服务器/IDE 后台运行时，它比弹出 GUI 窗口更稳定。
+# Agg  matplotlib 
+# //IDE , GUI 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
@@ -55,8 +55,8 @@ SPLIT_COLORS = {
 def parse_args() -> argparse.Namespace:
     """Read command line arguments.
 
-    默认使用 config_affinity.yaml。
-    传 --config 可以画 clean_v2 all_methods / spr_only 的数据分布图。
+     config_affinity.yaml
+     --config  clean_v2 all_methods / spr_only 
     """
 
     parser = argparse.ArgumentParser(description="Visualize affinity regression dataset.")
@@ -82,20 +82,20 @@ def save_histogram_for_splits(
 ) -> None:
     """Draw one histogram that compares train / val / test.
 
-    value_getter 是一个小函数：
-    - 输入一个 dataframe
-    - 输出我们要画的一列数字
+    value_getter :
+    -  dataframe
+    - 
 
-    这样同一个函数可以画 target，也可以画 sequence length。
+     target, sequence length
 
-    histogram 是直方图：
-    它把连续数值分成很多区间，然后数每个区间里有多少样本。
-    train/val/test 用不同颜色，是为了看三个 split 的分布是否相似。
+    histogram :
+    ,
+    train/val/test , split 
 
-    重要细节：
-    比较 train/val/test 分布时，必须使用同一套 bin edges。
-    如果每个 split 自动使用不同柱子区间，柱子的高度和位置就不可直接比较，
-    很容易误导我们对分布差异的判断。
+    :
+     train/val/test , bin edges
+     split ,,
+    
     """
 
     plt.figure(figsize=(9, 6))
@@ -131,7 +131,7 @@ def make_shared_bins(split_data: dict[str, pd.DataFrame], value_getter, bin_coun
     global_max = max(all_values)
 
     if global_min == global_max:
-        # 如果所有值都一样，给它一个很小范围，避免 linspace 生成重复 bin edge。
+        # ,, linspace  bin edge
         global_min -= 0.5
         global_max += 0.5
 
@@ -141,17 +141,17 @@ def make_shared_bins(split_data: dict[str, pd.DataFrame], value_getter, bin_coun
 def save_true_vs_predicted(predictions: pd.DataFrame, output_path: Path) -> None:
     """Draw true target vs model prediction scatter plot.
 
-    中文人话说明：
-    每个点是一条 test sample：
-    - x 轴是真实 target
-    - y 轴是模型预测 target
+    :
+     test sample:
+    - x  target
+    - y  target
 
-    如果模型很好，点应该接近 y=x 这条线。
-    如果所有点挤在一条水平线附近，说明模型可能 collapsed 到一个常数预测。
+    , y=x 
+    , collapsed 
 
-    重要细节：
-    如果 x/y 轴尺度不同，scatter plot 会视觉误导。
-    equal axis 可以更公平地看点是否真的接近 y=x。
+    :
+     x/y ,scatter plot 
+    equal axis  y=x
     """
 
     true_values = predictions["true_neg_log10_affinity"].astype(float)
@@ -166,7 +166,7 @@ def save_true_vs_predicted(predictions: pd.DataFrame, output_path: Path) -> None
     plt.figure(figsize=(7, 7))
     plt.scatter(true_values, predicted_values, alpha=0.75, color="#4C78A8", label="test samples")
 
-    # y = x 是“完美预测线”：点越靠近这条线，预测越准确。
+    # y = x :,
     plt.plot(
         [min_value, max_value],
         [min_value, max_value],
@@ -190,16 +190,16 @@ def save_true_vs_predicted(predictions: pd.DataFrame, output_path: Path) -> None
 def save_residual_plot(predictions: pd.DataFrame, output_path: Path) -> None:
     """Draw residual plot: true target vs prediction error.
 
-    中文人话说明：
-    residual = predicted - true。
+    :
+    residual = predicted - true
 
-    这张图能看：
-    - 低 target 样本是否总是被高估；
-    - 高 target 样本是否总是被低估；
-    - 模型是否有 regression-to-mean，也就是预测往平均值缩。
+    :
+    -  target ;
+    -  target ;
+    -  regression-to-mean,
 
-    如果左边大多在 0 上方、右边大多在 0 下方，
-    通常说明模型在把极端值往中间拉。
+     0  0 ,
+    
     """
 
     true_values = predictions["true_neg_log10_affinity"].astype(float)
@@ -221,8 +221,8 @@ def save_error_histogram(predictions: pd.DataFrame, output_path: Path) -> None:
     """Draw histogram of prediction error.
 
     error = predicted - true
-    如果 error 大于 0，说明模型预测的 neg_log10_affinity 偏高。
-    如果 error 小于 0，说明模型预测的 neg_log10_affinity 偏低。
+     error  0, neg_log10_affinity 
+     error  0, neg_log10_affinity 
     """
 
     errors = predictions["error"].astype(float)
@@ -242,10 +242,10 @@ def save_error_histogram(predictions: pd.DataFrame, output_path: Path) -> None:
 def save_fold_error_histogram(predictions: pd.DataFrame, output_path: Path) -> None:
     """Draw histogram of fold error with a log-scaled x-axis.
 
-    因为 target 是 -log10(affinity)，所以 log10 误差可以转换成倍数误差：
+     target  -log10(affinity), log10 :
         fold_error = 10 ** absolute_error
 
-    fold_error 可能非常大，所以这里用 log scale。
+    fold_error , log scale
     """
 
     fold_errors = predictions["fold_error"].astype(float)
@@ -286,8 +286,8 @@ def print_distribution_hint(train: pd.DataFrame, test: pd.DataFrame, target_colu
 def print_prediction_hint(predictions: pd.DataFrame) -> None:
     """Print a tiny prediction summary after drawing prediction figures.
 
-    prediction std 很小通常是危险信号：
-    它表示模型对不同输入给出的预测几乎一样，也就是 prediction collapse。
+    prediction std :
+    , prediction collapse
     """
 
     predicted = predictions["predicted_neg_log10_affinity"].astype(float)

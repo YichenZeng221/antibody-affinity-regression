@@ -1,14 +1,14 @@
 """Evaluate ANDD stratified all-CDR cross-attention after manual training.
 
-中文人话说明：
-这个脚本只在你已经训练好的 checkpoint 上做 test 推理，不会启动训练。
-它把 cross-attention 与同一个 stratified split 上的 all-CDR pooled baseline
-进行对比，因此差异来自模型表示方式，而不是不同 test set。
+:
+ checkpoint  test ,
+ cross-attention  stratified split  all-CDR pooled baseline
+,, test set
 
-为了公平检查 regression-to-the-mean：
-- low/mid/high 区间由新 train split 的 tertiles 定义；
-- tail 区间由新 train split 的 P10/P90 定义；
-- 不用 test 自己决定分箱边界。
+ regression-to-the-mean:
+- low/mid/high  train split  tertiles ;
+- tail  train split  P10/P90 ;
+-  test 
 """
 
 from __future__ import annotations
@@ -47,7 +47,7 @@ PRED_COL = "predicted_neg_log10_affinity"
 
 
 def parse_args() -> argparse.Namespace:
-    """读取 ANDD stratified cross-attention config。"""
+    """ ANDD stratified cross-attention config"""
 
     parser = argparse.ArgumentParser(
         description="Evaluate ANDD stratified all-CDR cross-attention checkpoint."
@@ -60,7 +60,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def successful_train_targets(config: dict) -> pd.Series:
-    """使用与 Dataset 相同的 CDR-success filter 获取 train target 阈值来源。"""
+    """ Dataset  CDR-success filter  train target """
 
     frame = pd.read_csv(config["train_csv"])
     heavy_ok = frame["heavy_cdr_status"].fillna("").astype(str).str.lower().isin(SUCCESS_STATUS_VALUES)
@@ -72,14 +72,14 @@ def successful_train_targets(config: dict) -> pd.Series:
 
 
 def safe_corr(left: pd.Series, right: pd.Series) -> float | None:
-    """避免少数特殊情况下 Pearson undefined 导致报告崩溃。"""
+    """ Pearson undefined """
 
     value = left.corr(right, method="pearson")
     return None if pd.isna(value) else float(value)
 
 
 def metric_bundle(predictions: pd.DataFrame, train_targets: pd.Series) -> dict:
-    """计算核心指标、train-defined bins 和 train-defined tail errors。"""
+    """train-defined bins  train-defined tail errors"""
 
     true_values = pd.to_numeric(predictions[TRUE_COL], errors="raise")
     predicted_values = pd.to_numeric(predictions[PRED_COL], errors="raise")
@@ -139,7 +139,7 @@ def build_prediction_rows(
     true_values: list[float],
     predicted_values: list[float],
 ) -> pd.DataFrame:
-    """保存 prediction 与可追踪样本信息，不覆盖 pooled prediction 文件。"""
+    """ prediction , pooled prediction """
 
     rows: list[dict] = []
     for row, true_value, predicted_value in zip(
@@ -168,7 +168,7 @@ def build_prediction_rows(
 
 
 def load_pooled_predictions(config: dict, cross_predictions: pd.DataFrame) -> pd.DataFrame | None:
-    """加载同一 stratified test set 上的 pooled predictions，并核对 sample IDs。"""
+    """ stratified test set  pooled predictions, sample IDs"""
 
     path = Path(config["pooled_baseline_predictions_path"])
     if not path.exists():
@@ -182,13 +182,13 @@ def load_pooled_predictions(config: dict, cross_predictions: pd.DataFrame) -> pd
 
 
 def fmt(value: float | None) -> str:
-    """格式化可空指标。"""
+    """"""
 
     return "NA" if value is None or pd.isna(value) else f"{value:.4f}"
 
 
 def metrics_row(name: str, metrics: dict) -> str:
-    """输出整体指标表的一行。"""
+    """"""
 
     return (
         f"| `{name}` | {metrics['rows']} | {metrics['mae']:.4f} | {metrics['rmse']:.4f} | "
@@ -198,7 +198,7 @@ def metrics_row(name: str, metrics: dict) -> str:
 
 
 def bin_row(name: str, metrics: dict) -> str:
-    """输出 low/mid/high MAE 表的一行。"""
+    """ low/mid/high MAE """
 
     return (
         f"| `{name}` | {metrics['target_bin_rows'].get('low_target', 0)} / "
@@ -211,7 +211,7 @@ def bin_row(name: str, metrics: dict) -> str:
 
 
 def tail_row(name: str, metrics: dict) -> str:
-    """输出 train-defined tails MAE 表的一行。"""
+    """ train-defined tails MAE """
 
     return (
         f"| `{name}` | {metrics['tail_rows']['below_train_p10']} / "
@@ -222,7 +222,7 @@ def tail_row(name: str, metrics: dict) -> str:
 
 
 def write_report(config: dict, cross_metrics: dict, pooled_metrics: dict | None) -> Path:
-    """写实验报告；在同一 stratified test set 上直接比较表示方式。"""
+    """; stratified test set """
 
     report_path = Path(config["report_path"])
     report_path.parent.mkdir(parents=True, exist_ok=True)
@@ -313,7 +313,7 @@ def write_report(config: dict, cross_metrics: dict, pooled_metrics: dict | None)
 
 
 def main() -> None:
-    """在训练后运行 test inference；本入口自身不会训练。"""
+    """ test inference;"""
 
     config = load_config(parse_args().config)
     device = cross_attention_device(config)

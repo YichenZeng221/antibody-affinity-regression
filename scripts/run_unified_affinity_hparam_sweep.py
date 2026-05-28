@@ -1,15 +1,15 @@
 """Run and summarize a tiny learning-rate sweep for unified affinity dataset v1.
 
-中文人话说明：
-这个脚本不改模型结构，也不改 dataset。
-它只是把三组独立 config 依次交给现有脚本：
+:
+, dataset
+ config :
 
-1. ``run_train_affinity.py`` 训练；
-2. ``evaluate_affinity_test_set.py`` 生成 test predictions；
-3. ``evaluate_affinity_baselines.py`` 打印 baseline comparison。
+1. ``run_train_affinity.py`` ;
+2. ``evaluate_affinity_test_set.py``  test predictions;
+3. ``evaluate_affinity_baselines.py``  baseline comparison
 
-每组 stdout/stderr 都写入独立 log，避免 tqdm 进度条把 terminal 淹没。
-最终汇总文件写到：
+ stdout/stderr  log, tqdm  terminal 
+:
     outputs/hparam_sweep/unified_affinity_dataset_v1/
 """
 

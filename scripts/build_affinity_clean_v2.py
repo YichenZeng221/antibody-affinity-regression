@@ -1,26 +1,26 @@
 """Build a cleaner Stage 1 affinity regression dataset.
 
-中文人话说明：
-这个脚本不重新解析 PDB，也不重新训练模型。
-它只从已经生成好的 sequence_only CSV 开始，做一版更干净的数据集：
+:
+ PDB,
+ sequence_only CSV ,:
 
     data/processed_affinity/sequence_only/
         train.csv
         val.csv
         test.csv
 
-清洗后输出到新的目录：
+:
 
     data/processed_affinity/clean_v2/
 
-为什么要做 clean_v2？
-我们发现当前模型基本在猜平均值。一个很常见的原因是：
-1. 数据量小；
-2. 重复样本多；
-3. metadata 里有可疑值；
-4. train/test split 虽然 PDB 不重叠，但 sequence 仍有少量重叠。
+ clean_v2?
+:
+1. ;
+2. ;
+3. metadata ;
+4. train/test split  PDB , sequence 
 
-所以这一版先做简单、透明、适合初学者理解的数据清洗。
+
 """
 
 from __future__ import annotations
@@ -43,10 +43,10 @@ SEED = 42
 def normalize_affinity_method(value: object) -> tuple[str, bool]:
     """Normalize affinity_method and flag suspicious values.
 
-    中文人话说明：
-    正常 method 应该像 SPR / ITC / Other。
-    如果 method 是纯数字，比如 18724939，它更像 PMID，不像实验方法。
-    这种行先标记为 suspicious，clean_v2 暂时排除。
+    :
+     method  SPR / ITC / Other
+     method , 18724939, PMID,
+     suspicious,clean_v2 
     """
 
     text = str(value).strip()
@@ -55,7 +55,7 @@ def normalize_affinity_method(value: object) -> tuple[str, bool]:
     if upper_text in {"", "NA", "NAN", "NONE"}:
         return "UNKNOWN", True
 
-    # PMID 通常是一串数字。这里简单判断：只要全是数字，就当作可疑 method。
+    # PMID :, method
     if re.fullmatch(r"\d+", upper_text):
         return upper_text, True
 
@@ -65,21 +65,21 @@ def normalize_affinity_method(value: object) -> tuple[str, bool]:
     if upper_text in {"SPR", "ITC"}:
         return upper_text, False
 
-    # 第一版只保留我们明确认识的 method。
-    # 其他奇怪字符串先当作 suspicious，避免 silent data noise。
+    #  method
+    #  suspicious, silent data noise
     return upper_text, True
 
 
 def load_sequence_only_data() -> pd.DataFrame:
     """Load original train/val/test and remember original_split.
 
-    中文人话说明：
-    为什么先合并再清洗？
-    因为重复样本可能分别出现在 train/val/test 中。
-    如果只在每个 split 内部去重，就看不到跨 split 的重复。
+    :
+    ?
+     train/val/test 
+     split , split 
 
-    original_split 记录这条样本原来属于 train/val/test 哪一份。
-    后面 clean_v2 会重新 split，但 original_split 可以帮助我们回溯来源。
+    original_split  train/val/test 
+     clean_v2  split, original_split 
     """
 
     frames = []
@@ -95,9 +95,9 @@ def load_sequence_only_data() -> pd.DataFrame:
 def add_excluded(excluded_records: list[pd.DataFrame], rows: pd.DataFrame, reason: str) -> None:
     """Add excluded rows with an exclusion_reason column.
 
-    excluded_records.csv 的意义：
-    不只是把数据扔掉，而是记录“为什么扔掉”。
-    这样以后你可以检查清洗规则是否太严格。
+    excluded_records.csv :
+    ,
+    
     """
 
     if len(rows) == 0:
@@ -111,9 +111,9 @@ def add_excluded(excluded_records: list[pd.DataFrame], rows: pd.DataFrame, reaso
 def remove_invalid_rows(dataframe: pd.DataFrame, excluded_records: list[pd.DataFrame]) -> pd.DataFrame:
     """Remove suspicious method, bad target, and missing sequence rows.
 
-    suspicious_affinity_method 是指 method 看起来不像实验方法。
-    例如纯数字更像 PMID，可能说明 raw metadata 某些列错位或内容不干净。
-    Stage 1 先保守排除，避免把明显可疑行混进训练。
+    suspicious_affinity_method  method 
+     PMID, raw metadata 
+    Stage 1 ,
     """
 
     cleaned = dataframe.copy()
@@ -142,7 +142,7 @@ def remove_invalid_rows(dataframe: pd.DataFrame, excluded_records: list[pd.DataF
     add_excluded(excluded_records, missing_sequence_rows, "missing_sequence")
     cleaned = cleaned[~missing_sequence_mask].copy()
 
-    # 后续代码统一使用 normalized method，但保留原始 affinity_method 也有助于回溯。
+    #  normalized method, affinity_method 
     cleaned["affinity_method"] = cleaned["affinity_method_normalized"]
     cleaned = cleaned.drop(columns=["affinity_method_normalized", "suspicious_method"])
 
@@ -152,12 +152,12 @@ def remove_invalid_rows(dataframe: pd.DataFrame, excluded_records: list[pd.DataF
 def deduplicate_triplets(dataframe: pd.DataFrame, excluded_records: list[pd.DataFrame]) -> pd.DataFrame:
     """Deduplicate exact heavy+light+antigen triplets.
 
-    中文人话说明：
-    如果三条 sequence 完全一样，模型看到的信息也完全一样。
-    重复保留会让数据集看起来比实际更大。
+    :
+     sequence ,
+    
 
-    如果 target 一致：保留第一条，其他重复行排除。
-    如果 target 冲突：这组数据不可信，整组排除。
+     target :,
+     target :,
     """
 
     triplet_columns = ["heavy_sequence", "light_sequence", "antigen_sequence"]
@@ -187,8 +187,8 @@ def deduplicate_triplets(dataframe: pd.DataFrame, excluded_records: list[pd.Data
 def pdb_level_split(dataframe: pd.DataFrame, seed: int = SEED) -> dict[str, pd.DataFrame]:
     """Split by PDB ID so one PDB cannot appear in multiple splits.
 
-    clean_v2 重新 split，而不是沿用旧 split。
-    因为我们合并、去重、排除了样本，旧 split 的比例和统计已经变了。
+    clean_v2  split, split
+    , split 
     """
 
     unique_pdbs = pd.Series(dataframe["pdb"].astype(str).unique()).sample(frac=1, random_state=seed).tolist()
@@ -197,7 +197,7 @@ def pdb_level_split(dataframe: pd.DataFrame, seed: int = SEED) -> dict[str, pd.D
     train_count = int(total_pdbs * 0.8)
     val_count = int(total_pdbs * 0.1)
 
-    # 如果数据很小，也尽量留一点 val/test。
+    # , val/test
     if total_pdbs >= 3:
         train_count = max(1, train_count)
         val_count = max(1, val_count)
@@ -269,9 +269,9 @@ def duplicate_triplet_count(dataframe: pd.DataFrame) -> int:
 def build_dataset_report(name: str, dataframe: pd.DataFrame, splits: dict[str, pd.DataFrame]) -> dict:
     """Build report for all_methods or spr_only.
 
-    cleaning_report.json 的意义：
-    让这次清洗过程可复查、可记录。
-    里面包含剩余样本数、method 分布、target 分布、split overlap 等。
+    cleaning_report.json :
+    
+    method target split overlap 
     """
 
     return {
@@ -328,8 +328,8 @@ def main() -> None:
     add_excluded(excluded_records, unexpected_rows, "unsupported_affinity_method")
     all_methods = all_methods[all_methods["affinity_method"].isin(allowed_methods)].copy()
 
-    # all_methods：保留 SPR / ITC / OTHER，样本稍多，但 assay method 更混杂。
-    # spr_only：只保留 SPR，实验方法更一致，但样本更少。
+    # all_methods: SPR / ITC / OTHER,, assay method 
+    # spr_only: SPR,,
     spr_only = all_methods[all_methods["affinity_method"] == "SPR"].copy()
 
     all_methods_splits = pdb_level_split(all_methods)

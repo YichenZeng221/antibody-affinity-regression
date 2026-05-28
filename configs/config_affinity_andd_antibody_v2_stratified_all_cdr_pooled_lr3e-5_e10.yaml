@@ -1,6 +1,6 @@
 # ANDD antibody v2 stratified antigen-level split: all-CDR pooled baseline.
-# 与原 ANDD all-CDR pooled baseline 保持同一个 model/loss/hyperparameter，
-# 只更换 split 和独立输出路径，以检查 split tail coverage 的影响。
+#  ANDD all-CDR pooled baseline  model/loss/hyperparameter,
+#  split , split tail coverage 
 
 model_name: facebook/esm2_t6_8M_UR50D
 task_type: affinity_cdr_aware_regression

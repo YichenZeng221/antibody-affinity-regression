@@ -1,5 +1,5 @@
 # ANDD antibody v2 stratified: milder tail-aware all-CDR cross-attention experiment.
-# 与 weight=3.0 版本保持 dataset 和 architecture 相同，只将 tail loss weight 调低为 2.0。
+#  weight=3.0  dataset  architecture , tail loss weight  2.0
 
 model_name: facebook/esm2_t6_8M_UR50D
 task_type: affinity_cross_attention_tailaware_regression
@@ -35,7 +35,7 @@ cross_attention_baseline_predictions_path: outputs/andd_antibody_v2_stratified/c
 checkpoint_comparison_figure_path: outputs/final_reports/figures/tailaware_w2_checkpoint_comparison.png
 residual_figure_path: outputs/final_reports/figures/tailaware_w2_residual_vs_true.png
 
-# 读取已经完成的 weight=3.0 predictions，只做比较，不覆盖旧结果。
+#  weight=3.0 predictions,,
 additional_comparison_predictions:
   w3_best_val_mae:
     label: "Tail-aware w3: best val MAE"
@@ -66,7 +66,7 @@ lora_dropout: 0.1
 num_attention_heads: 4
 dropout: 0.1
 
-# Tail-aware v2：同样由 train split 的 P10/P90 定义 tail，但权重更温和。
+# Tail-aware v2: train split  P10/P90  tail,
 tail_lower_quantile: 0.10
 tail_upper_quantile: 0.90
 tail_sample_weight: 2.0

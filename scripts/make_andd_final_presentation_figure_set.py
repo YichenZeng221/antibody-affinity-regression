@@ -1,8 +1,8 @@
 """Create the final 4-figure presentation set for ANDD antibody v2.
 
-中文说明：
-这份脚本只读取已有 CSV / prediction outputs，用 pandas + matplotlib 生成
-最终汇报用 PNG。它不会训练模型、不会修改 dataset、不会覆盖旧图。
+:
+ CSV / prediction outputs, pandas + matplotlib 
+ PNG dataset
 """
 
 from __future__ import annotations

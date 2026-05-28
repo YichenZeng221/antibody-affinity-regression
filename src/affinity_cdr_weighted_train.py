@@ -1,15 +1,15 @@
 """Weighted training loop for CDR-aware affinity regression.
 
-中文人话说明：
-这个训练版本专门针对 regression-to-mean。
+:
+ regression-to-mean
 
-普通 MSE 会让模型倾向预测中间值，因为中间区域样本多、风险小。
-这里把 train target 分成 low/mid/high 三个区间，然后给 low/high 更高 loss weight，
-希望模型更认真学习 affinity extremes。
+ MSE ,
+ train target  low/mid/high , low/high  loss weight,
+ affinity extremes
 
-模型结构不变：
+:
     six CDRs + antigen -> shared ESM2+LoRA -> mean pooling -> regression head
-只改训练 loss 和 checkpoint 保存策略。
+ loss  checkpoint 
 """
 
 from __future__ import annotations
@@ -42,8 +42,8 @@ def target_bin_thresholds(targets: list[float]) -> tuple[float, float]:
 def sample_weights(labels: torch.Tensor, low_threshold: float, high_threshold: float, config: dict) -> torch.Tensor:
     """Return per-sample weights based on target bin.
 
-    low target 和 high target 是模型最容易被“拉回平均值”的区域，
-    所以默认给它们更高权重。
+    low target  high target ,
+    
     """
 
     low_weight = float(config.get("low_target_loss_weight", 2.0))

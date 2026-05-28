@@ -1,14 +1,14 @@
 """Analyze and visualize TDC v1 CDR feature extraction outputs.
 
-中文人话说明：
-这个脚本不训练模型。
-它只读取 extract_cdr_features_tdc_v1.py 生成的 all_cdr.csv，
-回答这些问题：
+:
 
-1. heavy/light/all-six CDR 提取成功率是多少？
-2. CDR 长度和 antigen 长度分布是否合理？
-3. CDR3 长度和 affinity target 有没有明显趋势？
-4. 提取失败的样本 target 分布是否和成功样本不同？
+ extract_cdr_features_tdc_v1.py  all_cdr.csv,
+:
+
+1. heavy/light/all-six CDR ?
+2. CDR  antigen ?
+3. CDR3  affinity target ?
+4.  target ?
 """
 
 from __future__ import annotations
@@ -22,7 +22,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 INPUT_DIR = PROJECT_ROOT / "data" / "processed_affinity" / "tdc_v1" / "cdr_features"
 FIGURE_DIR = PROJECT_ROOT / "outputs" / "figures" / "cdr_tdc_v1"
 
-# matplotlib 画图时会写缓存；把缓存放在项目 outputs 下，避免 home 权限问题。
+# matplotlib ; outputs , home 
 MPL_CACHE_DIR = PROJECT_ROOT / "outputs" / "matplotlib_cache"
 MPL_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 os.environ.setdefault("MPLCONFIGDIR", str(MPL_CACHE_DIR))
@@ -93,7 +93,7 @@ def save_histogram(values: pd.Series, title: str, x_label: str, output_path: Pat
 def save_all_cdr_boxplot(dataframe: pd.DataFrame, output_path: Path) -> None:
     """Save boxplot comparing all CDR length distributions.
 
-    boxplot 适合把 6 个 CDR 的长度范围放在一张图里比较。
+    boxplot  6  CDR 
     """
 
     values = [dataframe[column].astype(float).tolist() for column in CDR_LENGTH_COLUMNS]

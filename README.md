@@ -1,6 +1,6 @@
-# SeqProFT-style Antibody–Antigen Affinity Regression
+# SeqProFT-style Antibody-Antigen Affinity Regression
 
-This repository is a research portfolio export of a first-stage antibody–antigen affinity regression project using ESM2 + LoRA-style fine-tuning.
+This repository is a research portfolio export of a first-stage antibody-antigen affinity regression project using ESM2 + LoRA-style fine-tuning.
 
 It is intentionally organized to show the full research loop: dataset audit, split design, model baselines, error diagnosis, multi-seed validation, contact/interface feature audit, and final scientific reporting.
 
@@ -46,7 +46,7 @@ This project is not just a leaderboard experiment. It demonstrates:
 src/                          Core model, dataset, training, and evaluation code
 scripts/                      Data audit, CDR extraction, evaluation, plotting scripts
 configs/                      Four selected final experiment configs
-reports/final_reports/        Final English / Chinese / bilingual reports
+reports/final_reports/        Final English reports
 reports/final_reports/figures/ Presentation-ready figures
 reports/andd_stratified/      Key ANDD stratified model reports and summary CSVs
 reports/contact_feature_audit/ Contact/interface audit reports and lightweight feature CSVs
@@ -58,10 +58,9 @@ docs/                         GitHub export manifest and script guide
 ## Important Reports
 
 - `reports/final_reports/andd_v2_affinity_regression_final_report.md`
-- `reports/final_reports/andd_v2_affinity_regression_final_report_zh.md`
-- `reports/final_reports/andd_v2_four_figure_presentation_summary_bilingual.md`
-- `reports/final_reports/contact_interface_experiment_chain_summary_bilingual.md`
 - `reports/final_reports/final_results_index.md`
+- `reports/andd_stratified/andd_stratified_model_summary.md`
+- `reports/contact_feature_audit/contact_interface_audit_summary.md`
 
 ## Presentation Figures
 

@@ -1,16 +1,16 @@
 """Audit several SAbDab affinity-count definitions against local TDC v1.
 
-中文人话说明：
-同事说“SAbDab 有 700+ usable affinity samples”时，第一件事不是马上训练，
-而是问清楚 ``usable`` 到底按什么口径数：
+:
+SAbDab  700+ usable affinity samples,,
+ ``usable`` :
 
-1. summary.tsv 里只要有 affinity metadata 就算吗？
-2. delta_g 有数字也算吗？
-3. 需要 heavy/light/antigen chain ID 都完整吗？
-4. 需要 antigen 是 sequence-based protein antigen 吗？
+1. summary.tsv  affinity metadata ?
+2. delta_g ?
+3.  heavy/light/antigen chain ID ?
+4.  antigen  sequence-based protein antigen ?
 
-这些口径差很多。这个脚本只做 metadata audit，不解析 PDB，不改 dataset，
-目的是把“能数到多少”和“现在是否能直接做 sequence regression”分开。
+ metadata audit, PDB, dataset,
+ sequence regression
 """
 
 from __future__ import annotations
@@ -63,9 +63,9 @@ def numeric_mask(series: pd.Series) -> pd.Series:
 def looks_suspicious_affinity_method(value: object) -> bool:
     """Flag PMID-like numeric affinity_method cells.
 
-    ``affinity_method`` 正常应该类似 SPR / ITC / ELISA。
-    如果它是纯数字，之前的 clean_v2 audit 已经提示它可能是 metadata 错位，
-    所以 strict count 里先保守排除。
+    ``affinity_method``  SPR / ITC / ELISA
+    , clean_v2 audit  metadata ,
+     strict count 
     """
 
     text = str(value).strip()
@@ -164,9 +164,9 @@ def prepare_summary(summary: pd.DataFrame) -> pd.DataFrame:
 def build_definition_masks(prepared: pd.DataFrame) -> OrderedDict[str, pd.Series]:
     """Build every row-selection rule requested by the audit."""
 
-    # 对 affinity regression 来说 affinity 必须大于 0，后面才能做 -log10。
-    # delta_g 是另一种连续 target，因此“affinity 或 delta_g 任一可用”口径
-    # 使用 positive affinity OR numeric delta_g。
+    #  affinity regression  affinity  0, -log10
+    # delta_g  target,affinity  delta_g 
+    #  positive affinity OR numeric delta_g
     masks: OrderedDict[str, pd.Series] = OrderedDict()
     masks["total_rows"] = pd.Series(True, index=prepared.index)
     masks["affinity_nonempty"] = prepared["affinity_present"]
@@ -382,8 +382,8 @@ def write_markdown(report: dict) -> None:
             "",
             "## Reading Guide",
             "",
-            "- The broad affinity/delta_g rows answer “what metadata exists”.",
-            "- The strict screen is closer to “what might become sequence-only regression data after sequence extraction”.",
+            "- The broad affinity/delta_g rows answer what metadata exists.",
+            "- The strict screen is closer to what might become sequence-only regression data after sequence extraction.",
             "- PDB-level TDC coverage is conservative but incomplete: it does not prove an exact chain/sequence match.",
         ]
     )

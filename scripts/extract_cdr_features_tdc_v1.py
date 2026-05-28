@@ -1,19 +1,19 @@
 """Extract CDR-aware features for the TDC v1 affinity dataset.
 
-中文人话说明：
-这个脚本是 feasibility check，不训练模型。
-它回答一个问题：
+:
+ feasibility check,
+:
 
-    当前 TDC v1 的 heavy/light sequences 能不能稳定得到 CDR 特征？
+     TDC v1  heavy/light sequences  CDR ?
 
-优先后端：
-- 如果当前 Python 环境装了 AbNumber，它会使用 AbNumber。
-  AbNumber 是基于 ANARCI 的 Python API，能给出标准 CDR1/CDR2/CDR3。
+:
+-  Python  AbNumber, AbNumber
+  AbNumber  ANARCI  Python API, CDR1/CDR2/CDR3
 
-fallback：
-- 如果 AbNumber/ANARCI 环境还没准备好，脚本不会崩。
-  它会使用一个明确标记为 imgt_index_heuristic 的粗略预检查方法。
-  这个 fallback 只用于“先看数据和图能不能跑通”，不是最终标准 CDR numbering。
+fallback:
+-  AbNumber/ANARCI ,
+   imgt_index_heuristic 
+   fallback , CDR numbering
 """
 
 from __future__ import annotations
@@ -108,9 +108,9 @@ def extract_with_abnumber(sequence: str, expected_chain: str, Chain) -> tuple[di
 def extract_with_heuristic(sequence: str) -> tuple[dict | None, str | None]:
     """Extract rough IMGT-like CDR slices when standard numbering is unavailable.
 
-    中文人话说明：
-    这个方法假设 variable region 在 sequence 前半段，按常见 IMGT 位置粗切片。
-    它不是标准 ANARCI numbering，所以输出会在 report 里明确标为 heuristic。
+    :
+     variable region  sequence , IMGT 
+     ANARCI numbering, report  heuristic
     """
 
     sequence = str(sequence).strip().upper()
@@ -127,10 +127,10 @@ def extract_with_heuristic(sequence: str) -> tuple[dict | None, str | None]:
 def extract_chain_cdrs(sequence: str, expected_chain: str, Chain) -> tuple[dict | None, str | None, str]:
     """Extract CDRs from one chain and return result, error, backend name.
 
-    中文人话说明：
-    先尝试标准 AbNumber/ANARCI。
-    如果标准后端因 hmmscan、numbering failure 等原因失败，
-    再退回 heuristic fallback，并把标准后端错误写进 error 字段。
+    :
+     AbNumber/ANARCI
+     hmmscannumbering failure ,
+     heuristic fallback, error 
     """
 
     if Chain is not None:

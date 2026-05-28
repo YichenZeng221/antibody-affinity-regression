@@ -1,12 +1,12 @@
 """Evaluate simple affinity regression baselines.
 
-中文人话说明：
-这个脚本不训练模型。
-它只回答一个 debugging 问题：
+:
 
-    ESM2+LoRA 是否真的超过了“永远预测训练集平均值/中位数”的简单 baseline？
+ debugging :
 
-如果模型没有明显超过 mean/median baseline，说明它可能只是学会预测接近平均值。
+    ESM2+LoRA / baseline?
+
+ mean/median baseline,
 """
 
 import argparse
@@ -26,8 +26,8 @@ from src.utils import load_config
 def parse_args() -> argparse.Namespace:
     """Read command line arguments.
 
-    默认使用 config_affinity.yaml。
-    传 --config 可以比较 clean_v2 数据的 mean/median/random baseline。
+     config_affinity.yaml
+     --config  clean_v2  mean/median/random baseline
     """
 
     parser = argparse.ArgumentParser(description="Evaluate affinity regression baselines.")
@@ -38,14 +38,14 @@ def parse_args() -> argparse.Namespace:
 def compute_metrics(true_values: list[float], predicted_values: list[float]) -> dict:
     """Compute regression metrics for one set of predictions.
 
-    中文人话说明：
-    - MAE / RMSE 越小越好。
-    - Spearman 看的是排序能力：预测值能不能把强/弱 binding 大概排对。
-    - 如果所有 prediction 都一样，Spearman 没有意义，所以直接设为 NaN。
+    :
+    - MAE / RMSE 
+    - Spearman :/ binding 
+    -  prediction ,Spearman , NaN
     """
 
-    # MAE / MSE / RMSE 都是用 error 算出来的。
-    # error = predicted - true；绝对值越小，预测越准。
+    # MAE / MSE / RMSE  error 
+    # error = predicted - true;,
     errors = [pred - true for true, pred in zip(true_values, predicted_values)]
     absolute_errors = [abs(error) for error in errors]
     squared_errors = [error * error for error in errors]
@@ -70,8 +70,8 @@ def compute_metrics(true_values: list[float], predicted_values: list[float]) -> 
         "MSE": mse,
         "RMSE": rmse,
         "Spearman": spearman,
-        # 因为 target 是 -log10(affinity)，所以 log10 误差可以转成倍数误差。
-        # 例如 MAE=1 约等于平均差 10 倍，MAE=2 约等于差 100 倍。
+        #  target  -log10(affinity), log10 
+        #  MAE=1  10 ,MAE=2  100 
         "MAE_fold_error": 10 ** mae,
         "RMSE_fold_error": 10 ** rmse,
         "prediction_mean": prediction_mean,
@@ -97,9 +97,9 @@ def make_result_row(model_name: str, true_values: list[float], predicted_values:
 def add_current_model_if_available(rows: list[dict], predictions_path: Path) -> None:
     """Add ESM2+LoRA metrics if the saved predictions CSV exists.
 
-    中文人话说明：
-    baseline 和当前模型放在同一张表里，才能看出模型有没有真的学到东西。
-    如果 ESM2+LoRA 还打不过 mean baseline，说明现在更该 debug 数据/任务。
+    :
+    baseline ,
+     ESM2+LoRA  mean baseline, debug /
     """
 
     if not predictions_path.exists():
@@ -135,9 +135,9 @@ def main() -> None:
     train_targets = train[target_column].astype(float)
     test_targets = test[target_column].astype(float).tolist()
 
-    # mean baseline 很重要：
-    # 它代表“完全不看 sequence，只永远猜训练集平均 target”。
-    # 真模型至少应该明显超过它，才说明 sequence 信息有帮助。
+    # mean baseline :
+    #  sequence, target
+    # , sequence 
     mean_value = float(train_targets.mean())
     median_value = float(train_targets.median())
 
@@ -146,8 +146,8 @@ def main() -> None:
     rows.append(make_result_row("median_baseline", test_targets, [median_value] * len(test_targets)))
 
     # Random baseline:
-    # 从训练集 target 里“有放回抽样”出和 test set 一样多的预测值。
-    # 它不看 sequence，只回答：随便从训练答案分布里猜，会有多差？
+    #  target  test set 
+    #  sequence,:,?
     rng = np.random.default_rng(seed=42)
     random_predictions = rng.choice(train_targets.to_numpy(), size=len(test_targets), replace=True)
     rows.append(make_result_row("random_train_distribution", test_targets, random_predictions.tolist()))

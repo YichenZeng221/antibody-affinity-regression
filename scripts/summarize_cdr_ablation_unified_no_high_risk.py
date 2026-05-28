@@ -1,9 +1,9 @@
 """Summarize CDR ablation test predictions into one CSV and markdown table.
 
-中文人话说明：
-这个脚本不训练模型。
-每个 CDR mode 完成 evaluation 后会有自己的 predictions CSV。
-这里把已存在的 predictions 汇总，方便看哪些 CDR 组合更有 signal。
+:
+
+ CDR mode  evaluation  predictions CSV
+ predictions , CDR  signal
 """
 
 from __future__ import annotations

@@ -1,9 +1,9 @@
 """Check whether unified_no_high_risk is ready for a CDR-aware baseline.
 
-中文人话说明：
-这个脚本只检查列名并写报告。
-如果当前 train/val/test 没有标准 CDR 字段，它会明确停止在 readiness report，
-不会从 heavy/light sequence 里用固定 index 硬切 CDR。
+:
+
+ train/val/test  CDR , readiness report,
+ heavy/light sequence  index  CDR
 """
 
 from __future__ import annotations

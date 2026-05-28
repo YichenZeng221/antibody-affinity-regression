@@ -1,9 +1,9 @@
 """Tail-aware training loop for the existing all-CDR cross-attention model.
 
-中文说明：
-这个模块不改变模型结构，也不改数据集。它只改变训练目标：
-使用 train split 的 P10/P90 定义两端 tail，并在 loss 中给 tail 样本更高权重。
-这样可以检查模型预测范围压缩是否部分来自 objective 对极端样本关注不足。
+:
+,:
+ train split  P10/P90  tail, loss  tail 
+ objective 
 """
 
 from __future__ import annotations
@@ -38,14 +38,14 @@ CHECKPOINT_POLICIES = {
 
 
 def tail_thresholds(train_targets: list[float]) -> tuple[float, float]:
-    """只用 train target 计算 P10/P90，避免 validation/test 信息泄漏。"""
+    """ train target  P10/P90, validation/test """
 
     targets = pd.Series(train_targets, dtype=float)
     return float(targets.quantile(0.10)), float(targets.quantile(0.90))
 
 
 def tail_sample_weights(labels: torch.Tensor, lower_p10: float, upper_p90: float, config: dict) -> torch.Tensor:
-    """给 train distribution 两端的样本更高 loss weight。"""
+    """ train distribution  loss weight"""
 
     regular_weight = float(config.get("regular_sample_weight", 1.0))
     tail_weight = float(config.get("tail_sample_weight", 3.0))
@@ -66,7 +66,7 @@ def validation_diagnostics(
     lower_p10: float,
     upper_p90: float,
 ) -> dict:
-    """计算每 epoch 所需的 validation regression-to-the-mean 指标。"""
+    """ epoch  validation regression-to-the-mean """
 
     true = pd.Series(true_values, dtype=float)
     predicted = pd.Series(predicted_values, dtype=float)
@@ -97,7 +97,7 @@ def validation_diagnostics(
 
 
 def improved(new_value: float, current_value: float | None, direction: str) -> bool:
-    """判断一个 validation selection metric 是否产生新的最佳 checkpoint。"""
+    """ validation selection metric  checkpoint"""
 
     if pd.isna(new_value):
         return False
@@ -117,7 +117,7 @@ def checkpoint_payload(
     train_dataset,
     val_dataset,
 ) -> dict:
-    """保存可追溯的 checkpoint metadata，便于之后统一测试。"""
+    """ checkpoint metadata,"""
 
     return {
         "model_state_dict": model.state_dict(),
@@ -134,7 +134,7 @@ def checkpoint_payload(
 
 
 def train_cross_attention_tailaware(config: dict) -> dict[str, Path]:
-    """训练已有 cross-attention architecture，使用 tail-weighted MSE 与四种保存策略。"""
+    """ cross-attention architecture, tail-weighted MSE """
 
     set_seed(int(config["seed"]))
     device = cross_attention_device(config)

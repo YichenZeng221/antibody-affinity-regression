@@ -1,13 +1,13 @@
 """Build conservative ANDD expanded affinity v2 candidate tables.
 
-中文人话说明：
-这不是正式训练集，也不会做 train/val/test split。
-它只是把 ANDD 中比较干净的 Tier 1 experimental rows 拆成：
+:
+, train/val/test split
+ ANDD  Tier 1 experimental rows :
 
 1. antibody candidates: heavy + light + antigen + experimental Kd
 2. nanobody candidates: VHH/nanobody sequence + antigen + experimental Kd
 
-同时保留 overlap/risk/provenance，方便下一步人工审计和正式 v2 dataset 设计。
+ overlap/risk/provenance, v2 dataset 
 """
 
 from __future__ import annotations
@@ -22,8 +22,8 @@ import sys
 
 import pandas as pd
 
-# 直接运行 `python scripts/xxx.py` 时，Python 默认会把 scripts/ 目录放进 import path，
-# 但不一定会把项目根目录放进去。这里手动加入项目根目录，方便复用 audit 脚本里的函数。
+#  `python scripts/xxx.py` ,Python  scripts/  import path,
+# , audit 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
@@ -163,8 +163,8 @@ def write_csv_both_dirs(filename: str, rows: list[dict], fieldnames: list[str]) 
     for directory in [OUTPUT_DIR, PROCESSED_DIR]:
         directory.mkdir(parents=True, exist_ok=True)
         with (directory / filename).open("w", newline="", encoding="utf-8") as handle:
-            # 不同 candidate 类型会保留不同的辅助字段。
-            # 这里让 writer 忽略不属于当前表头的字段，避免因为额外 provenance 字段而中断。
+            #  candidate 
+            #  writer , provenance 
             writer = csv.DictWriter(handle, fieldnames=fieldnames, extrasaction="ignore")
             writer.writeheader()
             writer.writerows(rows)
@@ -239,7 +239,7 @@ def main() -> None:
     andd = read_xlsx_first_sheet(ANDD_XLSX)
     columns = list(andd.columns)
     kd_column = find_column(columns, "Affinity_Kd")
-    delta_column = find_column(columns, "∆Gbinding") or find_column(columns, "ΔGbinding")
+    delta_column = find_column(columns, "Gbinding") or find_column(columns, "Gbinding")
     if kd_column is None:
         raise ValueError("ANDD Kd column not found.")
 

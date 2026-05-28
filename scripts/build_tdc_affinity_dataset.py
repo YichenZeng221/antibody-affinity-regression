@@ -1,22 +1,22 @@
 """Build a TDC Protein_SAbDab affinity regression dataset.
 
-中文人话说明：
-这个脚本只做 TDC 数据处理，不训练模型，不修改现有 clean_v2。
+:
+ TDC ,, clean_v2
 
-输入是 TDC inspection 保存下来的 raw split：
+ TDC inspection  raw split:
     data/external/tdc_antibody_affinity/raw_train.csv
     data/external/tdc_antibody_affinity/raw_val.csv
     data/external/tdc_antibody_affinity/raw_test.csv
 
-输出是项目统一格式的 affinity regression CSV：
+ affinity regression CSV:
     data/processed_affinity/tdc_v1/antigen_group_split/train.csv
     data/processed_affinity/tdc_v1/antigen_group_split/val.csv
     data/processed_affinity/tdc_v1/antigen_group_split/test.csv
 
-为什么重新 split？
-TDC 默认 split 是 random split，已经检查到 train/test 有 antigen overlap。
-这里使用 antigen_group_split：同一条 antigen_sequence 只能出现在一个 split 里。
-这样可以更严格地测试模型能否泛化到没见过的 antigen。
+ split?
+TDC  split  random split, train/test  antigen overlap
+ antigen_group_split: antigen_sequence  split 
+ antigen
 """
 
 from __future__ import annotations
@@ -37,7 +37,7 @@ SPLIT_OUTPUT_DIR = OUTPUT_ROOT / "antigen_group_split"
 SEED = 42
 TARGET_COLUMN = "neg_log10_affinity"
 
-# 标准蛋白质 20 种氨基酸，再允许 X/B/Z/U/O 这些数据里偶尔出现的不确定或特殊符号。
+#  20 , X/B/Z/U/O 
 AMINO_ACID_PATTERN = re.compile(r"^[ACDEFGHIKLMNPQRSTVWYXBZUO]+$")
 
 OUTPUT_COLUMNS = [
@@ -62,8 +62,8 @@ OUTPUT_COLUMNS = [
 def load_raw_splits() -> pd.DataFrame:
     """Load raw train/val/test CSV files and remember original_split.
 
-    original_split 是 TDC 默认 random split 的来源记录。
-    我们后面会重新 split，但保留 original_split 方便追踪样本来自哪里。
+    original_split  TDC  random split 
+     split, original_split 
     """
 
     frames = []
@@ -96,7 +96,7 @@ def add_excluded(excluded_records: list[pd.DataFrame], rows: pd.DataFrame, reaso
 def clean_sequence(sequence: object) -> str:
     """Normalize sequence text.
 
-    去掉空格、换行和常见分隔符，统一大写。
+    ,
     """
 
     return re.sub(r"[\s,;|]+", "", str(sequence).strip().upper())
@@ -112,13 +112,13 @@ def is_valid_sequence(sequence: object) -> bool:
 def parse_antibody_chains(value: object) -> tuple[str | None, str | None]:
     """Parse TDC Antibody column into heavy and light sequences.
 
-    中文人话说明：
-    TDC 页面说 antibody 的顺序是 heavy chain -> light chain。
-    常见格式是 Python list 字符串：
+    :
+    TDC  antibody  heavy chain -> light chain
+     Python list :
         "['HEAVYSEQ', 'LIGHTSEQ']"
 
-    为了稳一点，这里也尝试处理逗号、分号、竖线分隔的两个 sequence。
-    如果只能找到一条链，就返回 None，让主流程排除这条样本。
+    , sequence
+    , None,
     """
 
     text = str(value).strip()
@@ -132,7 +132,7 @@ def parse_antibody_chains(value: object) -> tuple[str | None, str | None]:
     except (SyntaxError, ValueError):
         pass
 
-    # fallback：去掉外层括号/引号，然后尝试常见分隔符。
+    # fallback:/,
     simplified = text.strip("[]()")
     simplified = simplified.replace('"', "").replace("'", "")
 
@@ -142,7 +142,7 @@ def parse_antibody_chains(value: object) -> tuple[str | None, str | None]:
         if len(parts) >= 2:
             return parts[0], parts[1]
 
-    # 最后尝试空格分隔。只有明显两段以上时才使用，避免把一条序列误切。
+    # ,
     parts = [clean_sequence(part) for part in simplified.split()]
     parts = [part for part in parts if part]
     if len(parts) >= 2:
@@ -162,7 +162,7 @@ def filter_target(dataframe: pd.DataFrame, excluded_records: list[pd.DataFrame])
     kept["Y"] = pd.to_numeric(kept["Y"], errors="coerce")
     kept["affinity"] = kept["Y"].astype(float)
 
-    # TDC 的 Y 看起来是 raw affinity/Kd。取 -log10 后更适合回归。
+    # TDC  Y  raw affinity/Kd -log10 
     kept["neg_log10_affinity"] = kept["affinity"].map(lambda value: -math.log10(float(value)))
     return kept
 
@@ -211,8 +211,8 @@ def parse_and_filter_sequences(dataframe: pd.DataFrame, excluded_records: list[p
 def deduplicate_triplets(dataframe: pd.DataFrame, excluded_records: list[pd.DataFrame]) -> tuple[pd.DataFrame, int]:
     """Remove exact heavy+light+antigen duplicates, keeping the first row.
 
-    如果同一个 triplet 有不同 Y，说明同一输入对应不同标签。
-    这不一定是错，但会让 beginner MVP 很难学，所以记录在 report/excluded。
+     triplet  Y,
+    , beginner MVP , report/excluded
     """
 
     triplet_columns = ["heavy_sequence", "light_sequence", "antigen_sequence"]
@@ -263,8 +263,8 @@ def antigen_group_split(dataframe: pd.DataFrame, seed: int = SEED) -> dict[str, 
     split_to_antigens = {"train": [], "val": [], "test": []}
     split_sizes = {"train": 0, "val": 0, "test": 0}
 
-    # 简单 greedy：每个 antigen group 放到当前最需要样本的 split。
-    # group split 的比例不一定完美，因为一个 antigen group 可能包含多行。
+    #  greedy: antigen group  split
+    # group split , antigen group 
     for _, row in antigen_sizes.iterrows():
         deficits = {
             "train": target_train - split_sizes["train"],

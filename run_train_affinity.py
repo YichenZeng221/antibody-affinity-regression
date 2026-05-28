@@ -1,16 +1,16 @@
 """Train the affinity regression MVP.
 
-中文人话说明：
-这是 affinity regression 的训练入口文件。
-你运行这个文件，它会：
-1. 读取 config_affinity.yaml。
-2. 根据配置加载数据、tokenizer、模型。
-3. 开始训练。
-4. 保存 checkpoint。
+:
+ affinity regression 
+,:
+1.  config_affinity.yaml
+2. tokenizer
+3. 
+4.  checkpoint
 
-它故意很短，因为真正的训练细节都放在 src/affinity_train.py。
+, src/affinity_train.py
 
-运行：
+:
     python run_train_affinity.py
 """
 
@@ -23,8 +23,8 @@ from src.utils import load_config
 def parse_args() -> argparse.Namespace:
     """Read command line arguments.
 
-    默认仍然读取 config_affinity.yaml，所以旧命令行为不变。
-    如果想训练 clean_v2，可以传入 --config 指向新的配置文件。
+     config_affinity.yaml,
+     clean_v2, --config 
     """
 
     parser = argparse.ArgumentParser(description="Train affinity regression model.")
@@ -37,8 +37,8 @@ def main() -> None:
 
     args = parse_args()
 
-    # config_affinity.yaml 像“实验设置面板”：
-    # 数据路径、batch_size、learning_rate、checkpoint 路径都在里面。
+    # config_affinity.yaml :
+    # batch_sizelearning_ratecheckpoint 
     config = load_config(args.config)
     train_affinity(config)
 

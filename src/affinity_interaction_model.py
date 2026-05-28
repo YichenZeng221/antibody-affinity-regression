@@ -1,15 +1,15 @@
 """Residue-level CDR-antigen interaction baseline for affinity regression.
 
-中文人话说明：
-pooled CDR baseline 会先把每条 CDR 序列平均成一个向量。
-这很清楚，也很轻量，但 residue-to-residue 的配对信息会被压掉。
+:
+pooled CDR baseline  CDR 
+,, residue-to-residue 
 
-这个最小 interaction baseline 仍然不用 3D structure，也不做复杂 attention head。
-它只做一件更显式的事：
-1. 用 shared ESM-2 + LoRA 得到 HCDR3、LCDR3、antigen 的 token embeddings。
-2. 把两个 CDR3 token matrix 拼成一个 CDR token matrix。
-3. 计算 CDR token 和 antigen token 的 dot-product interaction matrix。
-4. 从矩阵取几个简单 summary features，和 pooled embeddings 一起做 regression。
+ interaction baseline  3D structure, attention head
+:
+1.  shared ESM-2 + LoRA  HCDR3LCDR3antigen  token embeddings
+2.  CDR3 token matrix  CDR token matrix
+3.  CDR token  antigen token  dot-product interaction matrix
+4.  summary features, pooled embeddings  regression
 """
 
 from __future__ import annotations
@@ -105,7 +105,7 @@ class SeqProFTInteractionAffinityRegressor(nn.Module):
         top_k_means = []
         row_max_means = []
         column_max_means = []
-        # 不同 sample 的真实 token 数不同，top-k 在这里逐个 sample 计算最直观。
+        #  sample  token ,top-k  sample 
         for sample_index in range(interaction.shape[0]):
             valid_scores = interaction[sample_index][pair_mask[sample_index]]
             sample_k = min(self.interaction_top_k, int(valid_scores.numel()))
@@ -150,8 +150,8 @@ class SeqProFTInteractionAffinityRegressor(nn.Module):
             antigen_attention_mask,
         )
 
-        # 这里拼的是 token matrix，不是 raw sequence string。
-        # shape 从两个 [B, cdr_max_length, H] 变成 [B, 2*cdr_max_length, H]。
+        #  token matrix, raw sequence string
+        # shape  [B, cdr_max_length, H]  [B, 2*cdr_max_length, H]
         cdr_tokens = torch.cat([hcdr3_tokens, lcdr3_tokens], dim=1)
         cdr_mask = torch.cat([hcdr3_attention_mask, lcdr3_attention_mask], dim=1)
         cdr_pooled = self.mean_pool(cdr_tokens, cdr_mask)

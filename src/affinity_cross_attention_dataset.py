@@ -1,14 +1,14 @@
 """Dataset for the all-CDR CDR-to-antigen cross-attention affinity baseline.
 
-中文人话说明：
-这个分支使用 standard AbNumber + IMGT 已经提取好的六个 CDR：
+:
+ standard AbNumber + IMGT  CDR:
 
     HCDR1, HCDR2, HCDR3, LCDR1, LCDR2, LCDR3
 
-Dataset 不重新做 CDR extraction，也不改变 annotated CSV。它只负责：
-1. 过滤 heavy/light CDR extraction 失败的 row。
-2. 把六个 CDR 和 antigen sequence tokenize 成 ESM-2 tensors。
-3. 返回 attention_mask，让模型可以忽略 padding token。
+Dataset  CDR extraction, annotated CSV:
+1.  heavy/light CDR extraction  row
+2.  CDR  antigen sequence tokenize  ESM-2 tensors
+3.  attention_mask, padding token
 """
 
 from __future__ import annotations
@@ -74,7 +74,7 @@ class CrossAttentionAffinityDataset(Dataset):
         if self.data.empty:
             raise ValueError(f"{csv_path} has no rows ready for all-CDR cross-attention.")
 
-        # Affinity regression 的 label 是连续 target，所以这里使用 float。
+        # Affinity regression  label  target, float
         self.targets = pd.to_numeric(self.data[target_column], errors="raise").astype(float).tolist()
 
     def __len__(self) -> int:

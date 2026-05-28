@@ -1,16 +1,16 @@
 """Validate CDR-to-structure residue mapping for the ANDD stratified pilot.
 
-本脚本建立在 basic interface geometry pilot 之上，只处理已确认 chain mapping
-不歧义的 472 条样本。它不会训练模型，也不会修改原始数据集。
+ basic interface geometry pilot , chain mapping
+ 472 ,
 
-严格 mapping 原则：
-1. CDR sequence 必须在输入 heavy/light sequence 中只出现一次。
-2. 输入链 sequence 必须能可靠对齐到带坐标的 raw PDB chain sequence。
-3. CDR 的每一个 residue 必须精确对应到结构中的一个 amino-acid residue。
-4. 如果多个最优 alignment 导致 CDR residue mapping 不一致，标记为歧义，不计算 contact。
+ mapping :
+1. CDR sequence  heavy/light sequence 
+2.  sequence  raw PDB chain sequence
+3. CDR  residue  amino-acid residue
+4.  alignment  CDR residue mapping ,, contact
 
-通过验证后，才计算 preliminary CDR-antigen contact features。这些是 pilot 特征，
-并不直接进入任何训练数据或模型。
+, preliminary CDR-antigen contact features pilot ,
+
 """
 
 from __future__ import annotations
@@ -210,7 +210,7 @@ def chain_mapping_validation(
         cdr_statuses[field] = "success"
         cdr_reasons[field] = ""
 
-    # 有重复区域或缺口时，多个同分 alignment 可能给 CDR 分配不同 structure residues。
+    # , alignment  CDR  structure residues
     try:
         second = alignments[1]
     except IndexError:
@@ -604,17 +604,17 @@ def write_report(mapping: pd.DataFrame, contacts: pd.DataFrame) -> None:
         "",
         "## Scope and Safety Rules",
         "",
-        "- 输入样本仅限 basic interface pilot 中 chain mapping 已无歧义的 472 rows。",
-        "- 本脚本不训练模型，不修改 dataset，不处理 695 条 ambiguous chain mappings。",
-        "- CDR annotations 来源于标准 AbNumber + IMGT extraction；接触坐标来源于只读 SAbDab raw PDB。",
-        "- CDR contact 只在 full heavy/light sequence 到结构 chain 的 strict mapping 通过后作为 preliminary pilot 输出。",
+        "-  basic interface pilot  chain mapping  472 rows",
+        "- , dataset, 695  ambiguous chain mappings",
+        "- CDR annotations  AbNumber + IMGT extraction; SAbDab raw PDB",
+        "- CDR contact  full heavy/light sequence  chain  strict mapping  preliminary pilot ",
         "",
         "## Mapping Validation Rule",
         "",
-        "1. 每个 CDR sequence 必须在对应 full chain sequence 中唯一出现。",
-        "2. Full chain sequence 对齐到结构 chain 时，alignment identity 必须至少 95%，coverage 至少 80%。",
-        "3. 每个 CDR residue 必须映射到结构中存在、且 amino acid 字符一致的 coordinate-bearing residue。",
-        "4. 如果多个同分 alignment 对某个 CDR 给出不同 mapping，则记录为 insertion/deletion ambiguity，不计算 contact。",
+        "1.  CDR sequence  full chain sequence ",
+        "2. Full chain sequence  chain ,alignment identity  95%,coverage  80%",
+        "3.  CDR residue  amino acid  coordinate-bearing residue",
+        "4.  alignment  CDR  mapping, insertion/deletion ambiguity, contact",
         "",
         "## Overall Result",
         "",
@@ -646,17 +646,17 @@ def write_report(mapping: pd.DataFrame, contacts: pd.DataFrame) -> None:
             "",
             "## Preliminary CDR Contact Features",
             "",
-            "- `all_cdr_contact_count_5A`: all six mapped CDRs 与 antigen 的 5 A residue-pair contact 数。",
-            "- `hcdr3_contact_count_5A`, `lcdr3_contact_count_5A`: CDR3 loops 的 5 A residue-pair contact 数。",
-            "- `hcdr3_contact_fraction_5A`, `lcdr3_contact_fraction_5A`: 至少接触 antigen 的 CDR3 residues 占比。",
-            "- `cdr_interface_residue_count_5A`: 接触 antigen 的 CDR residues 数。",
-            "- `cdr_min_distance`: all mapped CDR residues 到 antigen 的最小非氢原子距离。",
-            "- All-CDR aggregate features 只在六段 CDR 均通过时有值；HCDR3/LCDR3 "
-            "features 则在相应 loop 自身安全映射时保留，因此可评估 CDR3-only 路线。",
-            f"- Preliminary contact table rows: **{len(contacts)}**（至少一个 CDR3 loop 可安全计算）；"
-            f"其中 all-six features **{int(contacts['all_cdr_contact_count_5A'].notna().sum())}** rows，"
-            f"HCDR3 features **{int(contacts['hcdr3_contact_count_5A'].notna().sum())}** rows，"
-            f"LCDR3 features **{int(contacts['lcdr3_contact_count_5A'].notna().sum())}** rows。",
+            "- `all_cdr_contact_count_5A`: all six mapped CDRs  antigen  5 A residue-pair contact ",
+            "- `hcdr3_contact_count_5A`, `lcdr3_contact_count_5A`: CDR3 loops  5 A residue-pair contact ",
+            "- `hcdr3_contact_fraction_5A`, `lcdr3_contact_fraction_5A`:  antigen  CDR3 residues ",
+            "- `cdr_interface_residue_count_5A`:  antigen  CDR residues ",
+            "- `cdr_min_distance`: all mapped CDR residues  antigen ",
+            "- All-CDR aggregate features  CDR ;HCDR3/LCDR3 "
+            "features  loop , CDR3-only ",
+            f"- Preliminary contact table rows: **{len(contacts)}**( CDR3 loop );"
+            f" all-six features **{int(contacts['all_cdr_contact_count_5A'].notna().sum())}** rows,"
+            f"HCDR3 features **{int(contacts['hcdr3_contact_count_5A'].notna().sum())}** rows,"
+            f"LCDR3 features **{int(contacts['lcdr3_contact_count_5A'].notna().sum())}** rows",
             "",
             "### Exploratory Correlations",
             "",

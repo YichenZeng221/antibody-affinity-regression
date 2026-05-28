@@ -1,18 +1,18 @@
 """Build unified_affinity_dataset_v1 from already audited affinity sources.
 
-中文人话说明：
-这个脚本像一次“小型数据入库”：
+:
+:
 
-1. 先把多个已经筛选/清洗过的数据版本转成同一列格式；
-2. 只保留能训练 sequence-only affinity regression 的 rows：
-   三条 sequence 都存在，target ``neg_log10_affinity`` 也能算出来；
-3. 用 heavy + light + antigen 三条 sequence 做 exact triplet 去重；
-4. 把 target 冲突的 triplet 隔离到 conflict file，不让模型偷偷吃到歧义标签；
-5. 最后按 antigen_sequence group 重新 split，降低 train/test antigen leakage。
+1. /;
+2.  sequence-only affinity regression  rows:
+    sequence ,target ``neg_log10_affinity`` ;
+3.  heavy + light + antigen  sequence  exact triplet ;
+4.  target  triplet  conflict file,;
+5.  antigen_sequence group  split, train/test antigen leakage
 
-这个脚本只写一个新的 dataset version：
+ dataset version:
     data/processed_affinity/unified_affinity_dataset_v1/
-它不会改 TDC v1、supplement v1、less-strict v1，也不会训练模型。
+ TDC v1supplement v1less-strict v1,
 """
 
 from __future__ import annotations
@@ -69,8 +69,8 @@ SEQUENCE_COLUMNS = ["heavy_sequence", "light_sequence", "antigen_sequence"]
 TRIPLET_COLUMNS = SEQUENCE_COLUMNS
 CHAIN_COLUMNS = ["pdb", "Hchain", "Lchain", "antigen_chain"]
 
-# 用户要求的 unified schema。后面额外保留 source_sample_id / duplicate_sources，
-# 这样排查某行从哪个旧 dataset 进来会更容易。
+#  unified schema source_sample_id / duplicate_sources,
+#  dataset 
 UNIFIED_COLUMNS = [
     "sample_id",
     "source",
@@ -202,7 +202,7 @@ def add_standard_row(
 
     rows.append(
         {
-            "sample_id": "",  # 在所有来源合并后再给统一临时 ID。
+            "sample_id": "",  #  ID
             "source": str(source),
             "original_source": str(original_source),
             "original_split": str(original_split),

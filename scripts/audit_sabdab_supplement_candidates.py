@@ -1,20 +1,20 @@
 """Audit conservative SAbDab supplement candidates without downloading files.
 
-中文人话说明：
-这个脚本回答的问题很窄：
+:
+:
 
-    overlap audit 里挑出来的 conservative supplement rows，
-    现在到底有多少已经能从本地 processed SAbDab CSV 取到三条 sequence？
+    overlap audit  conservative supplement rows,
+     processed SAbDab CSV  sequence?
 
-为什么先做这个 audit？
-- summary TSV 有 PDB ID 和 chain ID，但不一定有 sequence。
-- sequence-only SAbDab processed CSV 已经做过 PDB chain extraction，
-  如果候选在这里能 exact match，就可以直接复用已有序列。
-- 如果本地 processed files 没有现成 sequence，这一步只记录原因，
-  不联网下载，也不重新解析 PDB。
+ audit?
+- summary TSV  PDB ID  chain ID, sequence
+- sequence-only SAbDab processed CSV  PDB chain extraction,
+   exact match,
+-  processed files  sequence,,
+  , PDB
 
-``supplement_ready_candidates.csv`` 不是最终 merged dataset。
-它只是“下一步可以考虑合并并重新 split”的候选清单。
+``supplement_ready_candidates.csv``  merged dataset
+ split
 """
 
 from __future__ import annotations
@@ -154,9 +154,9 @@ def add_lookup_keys(dataframe: pd.DataFrame) -> pd.DataFrame:
 def local_sequence_lookup(candidates: pd.DataFrame, sequence_source: pd.DataFrame) -> pd.DataFrame:
     """Exact-match candidates to already extracted SAbDab sequences.
 
-    这里故意不做 fuzzy match。
-    PDB 相同但 chain ID 不同，可能就是另一个 biological pair。
-    所以必须 exact match PDB + Hchain + Lchain + antigen_chain。
+     fuzzy match
+    PDB  chain ID , biological pair
+     exact match PDB + Hchain + Lchain + antigen_chain
     """
 
     keyed_candidates = add_lookup_keys(candidates)
@@ -443,23 +443,23 @@ def print_human_summary(report: dict) -> None:
     duplicate_rows = report["tdc_overlap"]["heavy_light_antigen_triplet_overlap_rows"]
     print("SAbDab conservative supplement candidate audit complete.")
     print(
-        f"{report['conservative_candidate_rows']} conservative rows 中，"
-        f"{report['rows_with_local_sequences']} 条能从本地 processed SAbDab CSV 拿到三条 sequence。"
+        f"{report['conservative_candidate_rows']} conservative rows ,"
+        f"{report['rows_with_local_sequences']}  processed SAbDab CSV  sequence"
     )
     print(
-        "和 TDC v1 的 overlap："
-        f"PDB/antibody_id {report['tdc_overlap']['pdb_or_antibody_id_overlap_rows']} rows，"
-        f"antigen_sequence {report['tdc_overlap']['antigen_sequence_overlap_rows']} rows，"
-        f"exact triplet {duplicate_rows} rows。"
+        " TDC v1  overlap:"
+        f"PDB/antibody_id {report['tdc_overlap']['pdb_or_antibody_id_overlap_rows']} rows,"
+        f"antigen_sequence {report['tdc_overlap']['antigen_sequence_overlap_rows']} rows,"
+        f"exact triplet {duplicate_rows} rows"
     )
     print(
-        f"可能进入未来 tdc_plus_sabdab_supplement_v1 的候选："
-        f"{report['supplement_ready_rows']} rows / {report['supplement_ready_unique_pdbs']} PDBs。"
+        f" tdc_plus_sabdab_supplement_v1 :"
+        f"{report['supplement_ready_rows']} rows / {report['supplement_ready_unique_pdbs']} PDBs"
     )
     if report["supplement_ready_rows"] > 0:
-        print("值得创建 supplement dataset 的下一步 build 脚本，但要重新做 merged split。")
+        print(" supplement dataset  build , merged split")
     else:
-        print("当前离线 ready 候选太少，先补 sequence extraction 再考虑 supplement dataset。")
+        print(" ready , sequence extraction  supplement dataset")
     print(f"JSON report: {JSON_REPORT_PATH.relative_to(PROJECT_ROOT)}")
     print(f"Markdown report: {MARKDOWN_REPORT_PATH.relative_to(PROJECT_ROOT)}")
     print(f"Ready candidates CSV: {READY_CANDIDATES_PATH.relative_to(PROJECT_ROOT)}")

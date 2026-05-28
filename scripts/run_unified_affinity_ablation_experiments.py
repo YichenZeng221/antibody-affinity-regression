@@ -1,14 +1,14 @@
 """Run and summarize unified affinity ablation experiments.
 
-中文人话说明：
-full_629 已经有同参数的 lr=3e-5 run，所以这里直接复用。
-三个新 ablation 版本会依次调用项目现有脚本：
+:
+full_629  lr=3e-5 run,
+ ablation :
 1. run_train_affinity.py
 2. evaluate_affinity_test_set.py
 3. evaluate_affinity_baselines.py
 
-所有 checkpoint / predictions / logs 都用 ablation 专属路径，
-不会覆盖已有 unified sweep 结果。
+ checkpoint / predictions / logs  ablation ,
+ unified sweep 
 """
 
 from __future__ import annotations

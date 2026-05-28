@@ -1,14 +1,14 @@
 """Evaluate the residue-level CDR-antigen interaction affinity baseline.
 
-中文人话说明：
-训练完成后，这个脚本会在 interaction-aware test set 上：
-1. 加载 checkpoint。
-2. 预测每个 test sample 的 `neg_log10_affinity`。
-3. 保存 per-sample predictions。
-4. 写 MAE/RMSE/Spearman 和 regression-to-mean 诊断报告。
+:
+, interaction-aware test set :
+1.  checkpoint
+2.  test sample  `neg_log10_affinity`
+3.  per-sample predictions
+4.  MAE/RMSE/Spearman  regression-to-mean 
 
-这一步仍然是 sequence-only baseline：
-它显式用 residue-level interaction matrix，但没有引入 3D structure/contact labels。
+ sequence-only baseline:
+ residue-level interaction matrix, 3D structure/contact labels
 """
 
 from __future__ import annotations

@@ -1,9 +1,9 @@
 """Aggregate ANDD stratified unweighted vs tail-aware-w2 multi-seed results.
 
-中文说明：
-这个脚本不训练、不运行 inference，只读取各 run 在 test set 上生成的
-`checkpoint_comparison.csv`。汇总时按相同 validation checkpoint policy 比较，
-主结论默认关注 `best_val_tail_mae`，因为这是本次 tail 行为实验的预注册选择口径。
+:
+ inference, run  test set 
+`checkpoint_comparison.csv` validation checkpoint policy ,
+ `best_val_tail_mae`, tail 
 """
 
 from __future__ import annotations
