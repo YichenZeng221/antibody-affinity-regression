@@ -1,0 +1,38 @@
+# ANDD antibody v2 stratified antigen-level split: all-CDR pooled baseline.
+# 与原 ANDD all-CDR pooled baseline 保持同一个 model/loss/hyperparameter，
+# 只更换 split 和独立输出路径，以检查 split tail coverage 的影响。
+
+model_name: facebook/esm2_t6_8M_UR50D
+task_type: affinity_cdr_aware_regression
+target_column: neg_log10_affinity_candidate
+input_mode: cdr_aware
+mode_name: andd_antibody_v2_stratified_all_cdr_pooled
+input_cdr_fields:
+  - HCDR1
+  - HCDR2
+  - HCDR3
+  - LCDR1
+  - LCDR2
+  - LCDR3
+
+train_csv: data/processed_affinity/expanded_affinity_antibody_v2_stratified/train.csv
+val_csv: data/processed_affinity/expanded_affinity_antibody_v2_stratified/val.csv
+test_csv: data/processed_affinity/expanded_affinity_antibody_v2_stratified/test.csv
+
+checkpoint_path: outputs/andd_antibody_v2_stratified/all_cdr_pooled/checkpoints/seqproft_affinity_andd_antibody_v2_stratified_all_cdr_pooled_lr3e-5_e10.pt
+predictions_path: outputs/andd_antibody_v2_stratified/all_cdr_pooled/andd_antibody_v2_stratified_all_cdr_pooled_test_predictions.csv
+report_path: outputs/andd_antibody_v2_stratified/all_cdr_pooled/andd_antibody_v2_stratified_all_cdr_pooled_report.md
+
+whole_sequence_predictions_path: outputs/andd_antibody_v2_stratified/all_cdr_pooled/no_whole_sequence_baseline_yet.csv
+
+max_length: 512
+cdr_max_length: 64
+batch_size: 1
+learning_rate: 0.00003
+epochs: 10
+seed: 42
+device: auto
+
+lora_r: 8
+lora_alpha: 16
+lora_dropout: 0.1

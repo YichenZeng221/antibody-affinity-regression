@@ -1,0 +1,146 @@
+{
+  "input_rows": 1168,
+  "antigen_group_count": 802,
+  "seed": 42,
+  "requested_ratios": {
+    "train": 0.8,
+    "val": 0.1,
+    "test": 0.1
+  },
+  "stratification_definition": "tertiles of antigen-level mean target",
+  "target_column": "neg_log10_affinity_candidate",
+  "global_target_thresholds": {
+    "p05": 2.8900448329823507,
+    "p95": 6.583770095451064
+  },
+  "old_split": {
+    "train": {
+      "rows": 934,
+      "antigen_groups": 644,
+      "target": {
+        "count": 934,
+        "min": 2.003140462479861,
+        "p05": 2.891669833200064,
+        "mean": 4.946736752485592,
+        "std": 1.2110515573225213,
+        "p95": 6.586969602646518,
+        "max": 11.815523129586518
+      },
+      "group_target_stratum_counts": {},
+      "covers_global_p05": true,
+      "covers_global_p95": true,
+      "global_p05_tail_rows": 47,
+      "global_p95_tail_rows": 47
+    },
+    "val": {
+      "rows": 117,
+      "antigen_groups": 79,
+      "target": {
+        "count": 117,
+        "min": 2.093766970107105,
+        "p05": 2.602571076908751,
+        "mean": 4.894352172019373,
+        "std": 1.1783258690726848,
+        "p95": 6.561205854754153,
+        "max": 6.981064305547371
+      },
+      "group_target_stratum_counts": {},
+      "covers_global_p05": true,
+      "covers_global_p95": true,
+      "global_p05_tail_rows": 9,
+      "global_p95_tail_rows": 4
+    },
+    "test": {
+      "rows": 117,
+      "antigen_groups": 79,
+      "target": {
+        "count": 117,
+        "min": 2.1533393909423224,
+        "p05": 3.0596366445860976,
+        "mean": 5.028087304475509,
+        "std": 1.236980159259219,
+        "p95": 6.815239258547002,
+        "max": 8.469198215817466
+      },
+      "group_target_stratum_counts": {},
+      "covers_global_p05": true,
+      "covers_global_p95": true,
+      "global_p05_tail_rows": 3,
+      "global_p95_tail_rows": 8
+    }
+  },
+  "new_split": {
+    "train": {
+      "rows": 934,
+      "antigen_groups": 568,
+      "target": {
+        "count": 934,
+        "min": 2.0448868313632476,
+        "p05": 2.938304707938589,
+        "mean": 4.947323454207844,
+        "std": 1.1505008998108097,
+        "p95": 6.56173306440041,
+        "max": 8.534309384483311
+      },
+      "group_target_stratum_counts": {
+        "low": 196,
+        "high": 193,
+        "mid": 179
+      },
+      "covers_global_p05": true,
+      "covers_global_p95": true,
+      "global_p05_tail_rows": 42,
+      "global_p95_tail_rows": 43
+    },
+    "val": {
+      "rows": 117,
+      "antigen_groups": 117,
+      "target": {
+        "count": 117,
+        "min": 2.003140462479861,
+        "p05": 2.419928398873128,
+        "mean": 4.973008673755148,
+        "std": 1.4829400395527876,
+        "p95": 6.847458071790545,
+        "max": 11.815523129586518
+      },
+      "group_target_stratum_counts": {
+        "mid": 44,
+        "high": 37,
+        "low": 36
+      },
+      "covers_global_p05": true,
+      "covers_global_p95": true,
+      "global_p05_tail_rows": 10,
+      "global_p95_tail_rows": 9
+    },
+    "test": {
+      "rows": 117,
+      "antigen_groups": 117,
+      "target": {
+        "count": 117,
+        "min": 2.0348508597857986,
+        "p05": 2.8790774125158545,
+        "mean": 4.9447472180509875,
+        "std": 1.3705153741465488,
+        "p95": 6.798850147143491,
+        "max": 10.920818753952377
+      },
+      "group_target_stratum_counts": {
+        "mid": 44,
+        "high": 37,
+        "low": 36
+      },
+      "covers_global_p05": true,
+      "covers_global_p95": true,
+      "global_p05_tail_rows": 7,
+      "global_p95_tail_rows": 7
+    }
+  },
+  "antigen_overlap_check": {
+    "train_val": 0,
+    "train_test": 0,
+    "val_test": 0
+  },
+  "cdr_annotation_source": "data/processed_affinity/expanded_affinity_antibody_v2_cdr_annotated"
+}

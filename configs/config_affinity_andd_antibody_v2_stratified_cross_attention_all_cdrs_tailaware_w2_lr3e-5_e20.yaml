@@ -1,0 +1,73 @@
+# ANDD antibody v2 stratified: milder tail-aware all-CDR cross-attention experiment.
+# 与 weight=3.0 版本保持 dataset 和 architecture 相同，只将 tail loss weight 调低为 2.0。
+
+model_name: facebook/esm2_t6_8M_UR50D
+task_type: affinity_cross_attention_tailaware_regression
+target_column: neg_log10_affinity_candidate
+input_mode: all_cdrs_cross_attention_antigen
+mode_name: andd_antibody_v2_stratified_cross_attention_all_cdrs_tailaware_w2
+experiment_label: Tail-aware w2
+report_title: "ANDD Antibody v2 Stratified: Tail-Aware Cross-Attention Weight=2.0"
+
+train_csv: data/processed_affinity/expanded_affinity_antibody_v2_stratified/train.csv
+val_csv: data/processed_affinity/expanded_affinity_antibody_v2_stratified/val.csv
+test_csv: data/processed_affinity/expanded_affinity_antibody_v2_stratified/test.csv
+
+output_dir: outputs/andd_antibody_v2_stratified/cross_attention_all_cdrs_tailaware_w2
+training_history_path: outputs/andd_antibody_v2_stratified/cross_attention_all_cdrs_tailaware_w2/tailaware_w2_training_history.csv
+report_path: outputs/andd_antibody_v2_stratified/cross_attention_all_cdrs_tailaware_w2/tailaware_w2_training_report.md
+checkpoint_comparison_path: outputs/andd_antibody_v2_stratified/cross_attention_all_cdrs_tailaware_w2/tailaware_w2_checkpoint_comparison.csv
+
+checkpoint_paths:
+  best_val_mae: outputs/andd_antibody_v2_stratified/cross_attention_all_cdrs_tailaware_w2/checkpoints/best_val_mae.pt
+  best_val_spearman: outputs/andd_antibody_v2_stratified/cross_attention_all_cdrs_tailaware_w2/checkpoints/best_val_spearman.pt
+  best_val_spread: outputs/andd_antibody_v2_stratified/cross_attention_all_cdrs_tailaware_w2/checkpoints/best_val_pred_std_ratio.pt
+  best_val_tail_mae: outputs/andd_antibody_v2_stratified/cross_attention_all_cdrs_tailaware_w2/checkpoints/best_val_tail_mae.pt
+
+prediction_paths:
+  best_val_mae: outputs/andd_antibody_v2_stratified/cross_attention_all_cdrs_tailaware_w2/tailaware_w2_test_predictions_best_val_mae.csv
+  best_val_spearman: outputs/andd_antibody_v2_stratified/cross_attention_all_cdrs_tailaware_w2/tailaware_w2_test_predictions_best_val_spearman.csv
+  best_val_spread: outputs/andd_antibody_v2_stratified/cross_attention_all_cdrs_tailaware_w2/tailaware_w2_test_predictions_best_val_pred_std_ratio.csv
+  best_val_tail_mae: outputs/andd_antibody_v2_stratified/cross_attention_all_cdrs_tailaware_w2/tailaware_w2_test_predictions_best_val_tail_mae.csv
+
+pooled_baseline_predictions_path: outputs/andd_antibody_v2_stratified/all_cdr_pooled/andd_antibody_v2_stratified_all_cdr_pooled_test_predictions.csv
+cross_attention_baseline_predictions_path: outputs/andd_antibody_v2_stratified/cross_attention_all_cdrs/test_predictions.csv
+checkpoint_comparison_figure_path: outputs/final_reports/figures/tailaware_w2_checkpoint_comparison.png
+residual_figure_path: outputs/final_reports/figures/tailaware_w2_residual_vs_true.png
+
+# 读取已经完成的 weight=3.0 predictions，只做比较，不覆盖旧结果。
+additional_comparison_predictions:
+  w3_best_val_mae:
+    label: "Tail-aware w3: best val MAE"
+    path: outputs/andd_antibody_v2_stratified/cross_attention_all_cdrs_tailaware/tailaware_test_predictions_best_val_mae.csv
+  w3_best_val_spearman:
+    label: "Tail-aware w3: best val Spearman"
+    path: outputs/andd_antibody_v2_stratified/cross_attention_all_cdrs_tailaware/tailaware_test_predictions_best_val_spearman.csv
+  w3_best_val_spread:
+    label: "Tail-aware w3: best val spread"
+    path: outputs/andd_antibody_v2_stratified/cross_attention_all_cdrs_tailaware/tailaware_test_predictions_best_val_pred_std_ratio.csv
+  w3_best_val_tail_mae:
+    label: "Tail-aware w3: best val tail MAE"
+    path: outputs/andd_antibody_v2_stratified/cross_attention_all_cdrs_tailaware/tailaware_test_predictions_best_val_tail_mae.csv
+primary_tailaware_reference_label: "Tail-aware w3: best val tail MAE"
+
+cdr_max_length: 64
+antigen_max_length: 512
+batch_size: 1
+learning_rate: 0.00003
+epochs: 20
+seed: 42
+device: mps_if_available
+weight_decay: 0.0
+
+lora_r: 8
+lora_alpha: 16
+lora_dropout: 0.1
+num_attention_heads: 4
+dropout: 0.1
+
+# Tail-aware v2：同样由 train split 的 P10/P90 定义 tail，但权重更温和。
+tail_lower_quantile: 0.10
+tail_upper_quantile: 0.90
+tail_sample_weight: 2.0
+regular_sample_weight: 1.0

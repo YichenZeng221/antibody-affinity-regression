@@ -1,0 +1,50 @@
+# Multi-seed control: unweighted all-CDR cross-attention, seed 42, 20 epochs.
+# tail_weight == regular_weight == 1.0 makes this ordinary MSE while preserving identical checkpoint policy.
+model_name: facebook/esm2_t6_8M_UR50D
+task_type: affinity_cross_attention_regression_multiseed_control
+target_column: neg_log10_affinity_candidate
+input_mode: all_cdrs_cross_attention_antigen
+mode_name: andd_stratified_unweighted_s42
+experiment_label: Unweighted s42
+experiment_kind: unweighted
+report_title: "ANDD Stratified Multi-Seed Control: Unweighted Cross-Attention Seed 42"
+multiseed_group: unweighted
+multiseed_seed: 42
+train_csv: data/processed_affinity/expanded_affinity_antibody_v2_stratified/train.csv
+val_csv: data/processed_affinity/expanded_affinity_antibody_v2_stratified/val.csv
+test_csv: data/processed_affinity/expanded_affinity_antibody_v2_stratified/test.csv
+output_dir: outputs/andd_antibody_v2_stratified/multiseed/unweighted_seed42
+training_history_path: outputs/andd_antibody_v2_stratified/multiseed/unweighted_seed42/training_history.csv
+report_path: outputs/andd_antibody_v2_stratified/multiseed/unweighted_seed42/evaluation_report.md
+checkpoint_comparison_path: outputs/andd_antibody_v2_stratified/multiseed/unweighted_seed42/checkpoint_comparison.csv
+checkpoint_paths:
+  best_val_mae: outputs/andd_antibody_v2_stratified/multiseed/unweighted_seed42/checkpoints/best_val_mae.pt
+  best_val_spearman: outputs/andd_antibody_v2_stratified/multiseed/unweighted_seed42/checkpoints/best_val_spearman.pt
+  best_val_spread: outputs/andd_antibody_v2_stratified/multiseed/unweighted_seed42/checkpoints/best_val_pred_std_ratio.pt
+  best_val_tail_mae: outputs/andd_antibody_v2_stratified/multiseed/unweighted_seed42/checkpoints/best_val_tail_mae.pt
+prediction_paths:
+  best_val_mae: outputs/andd_antibody_v2_stratified/multiseed/unweighted_seed42/test_predictions_best_val_mae.csv
+  best_val_spearman: outputs/andd_antibody_v2_stratified/multiseed/unweighted_seed42/test_predictions_best_val_spearman.csv
+  best_val_spread: outputs/andd_antibody_v2_stratified/multiseed/unweighted_seed42/test_predictions_best_val_pred_std_ratio.csv
+  best_val_tail_mae: outputs/andd_antibody_v2_stratified/multiseed/unweighted_seed42/test_predictions_best_val_tail_mae.csv
+pooled_baseline_predictions_path: outputs/andd_antibody_v2_stratified/all_cdr_pooled/andd_antibody_v2_stratified_all_cdr_pooled_test_predictions.csv
+cross_attention_baseline_predictions_path: outputs/andd_antibody_v2_stratified/cross_attention_all_cdrs/test_predictions.csv
+checkpoint_comparison_figure_path: outputs/andd_antibody_v2_stratified/multiseed/unweighted_seed42/checkpoint_comparison.png
+residual_figure_path: outputs/andd_antibody_v2_stratified/multiseed/unweighted_seed42/residual_vs_true.png
+cdr_max_length: 64
+antigen_max_length: 512
+batch_size: 1
+learning_rate: 0.00003
+epochs: 20
+seed: 42
+device: mps_if_available
+weight_decay: 0.0
+lora_r: 8
+lora_alpha: 16
+lora_dropout: 0.1
+num_attention_heads: 4
+dropout: 0.1
+tail_lower_quantile: 0.10
+tail_upper_quantile: 0.90
+tail_sample_weight: 1.0
+regular_sample_weight: 1.0

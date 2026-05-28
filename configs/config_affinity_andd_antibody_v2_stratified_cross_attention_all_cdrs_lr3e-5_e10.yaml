@@ -1,0 +1,46 @@
+# ANDD antibody v2 stratified split: all six IMGT CDRs -> antigen cross-attention.
+# 这一版复用已有 cross-attention 模型与 MSE loss，只更换为 ANDD stratified 数据和独立输出路径。
+
+model_name: facebook/esm2_t6_8M_UR50D
+task_type: affinity_cross_attention_regression
+target_column: neg_log10_affinity_candidate
+input_mode: all_cdrs_cross_attention_antigen
+mode_name: andd_antibody_v2_stratified_cross_attention_all_cdrs
+
+train_csv: data/processed_affinity/expanded_affinity_antibody_v2_stratified/train.csv
+val_csv: data/processed_affinity/expanded_affinity_antibody_v2_stratified/val.csv
+test_csv: data/processed_affinity/expanded_affinity_antibody_v2_stratified/test.csv
+
+checkpoint_path: outputs/andd_antibody_v2_stratified/cross_attention_all_cdrs/checkpoints/seqproft_affinity_andd_antibody_v2_stratified_cross_attention_all_cdrs_lr3e-5_e10.pt
+predictions_path: outputs/andd_antibody_v2_stratified/cross_attention_all_cdrs/test_predictions.csv
+report_path: outputs/andd_antibody_v2_stratified/cross_attention_all_cdrs/cross_attention_report.md
+
+# 同一个 stratified test set 上已完成的 all-CDR pooled baseline，用于公平对比。
+pooled_baseline_predictions_path: outputs/andd_antibody_v2_stratified/all_cdr_pooled/andd_antibody_v2_stratified_all_cdr_pooled_test_predictions.csv
+
+cdr_max_length: 64
+antigen_max_length: 512
+batch_size: 1
+learning_rate: 0.00003
+epochs: 10
+seed: 42
+device: mps_if_available
+
+lora_r: 8
+lora_alpha: 16
+lora_dropout: 0.1
+num_attention_heads: 4
+dropout: 0.1
+
+# 在报告中保留已完成 pooled baseline 的 headline numbers，方便核对。
+pooled_baseline_reference:
+  mae: 0.9373
+  rmse: 1.3056
+  spearman: 0.3699
+  pred_std_over_true_std: 0.3170
+  error_vs_true_pearson: -0.9484
+  low_target_mae: 1.1674
+  mid_target_mae: 0.3773
+  high_target_mae: 1.3367
+  below_train_p10_mae: 1.8650
+  above_train_p90_mae: 2.0887

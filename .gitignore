@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+
+# Virtual environments
+.venv/
+.venv_*/
+venv/
+env/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Large or local-only data
+data/
+data/raw/
+data/external/
+data/pdb/
+*.pdb
+*.cif
+*.mmcif
+*.xlsx
+*.xls
+*.zip
+
+# Model artifacts
+*.pt
+*.pth
+*.ckpt
+checkpoints/
+outputs/checkpoints/
+
+# Large prediction dumps / caches
+*_predictions.csv
+test_predictions.csv
+matplotlib_cache/
+.cache/
+
+# Local archives
+archive/
