@@ -1,10 +1,8 @@
-# SeqProFT-style Antibody-Antigen Affinity Regression
+# Antibody-Antigen Affinity Regression with ESM2 + LoRA
 
-This repository is a research portfolio export of a first-stage antibody-antigen affinity regression project using ESM2 + LoRA-style fine-tuning.
+This repository presents a leakage-aware antibody-antigen affinity regression study using ESM2, LoRA fine-tuning, CDR-aware inputs, and learnable CDR-to-antigen cross-attention.
 
-It is intentionally organized to show the full research loop: dataset audit, split design, model baselines, error diagnosis, multi-seed validation, contact/interface feature audit, and final scientific reporting.
-
-The main benchmark in the final stage is **ANDD antibody v2 stratified split**, with target:
+The main benchmark is the **ANDD antibody v2 stratified antigen-level split**, with target:
 
 ```text
 y = -log10(Kd)
@@ -12,7 +10,29 @@ y = -log10(Kd)
 
 Higher values mean stronger binding.
 
-## Project Summary
+## Key Findings
+
+- Absolute affinity regression exhibits systematic prediction compression: weak binders tend to be overpredicted and strong binders tend to be underpredicted.
+- An overfit sanity check identified a capacity / representation bottleneck: ESM2 8M could not adequately fit a fixed 64-sample subset, while ESM2 35M could.
+- Scaling to ESM2 150M improved completed test evaluation metrics over the ESM2 8M cross-attention baseline across the first two available seeds.
+- An ESM2 650M pilot plateaued on validation and did not provide evidence that further scaling would improve generalization under the current sequence-only setup.
+- Tail-aware loss and CDR3 contact features provided partial gains, but neither fully resolved regression-to-the-mean.
+
+## Backbone Scaling Results
+
+| model | seed | evaluation split | MAE | Spearman | notes |
+|---|---:|---|---:|---:|---|
+| ESM2 8M cross-attention baseline | 42 | test | 0.9523 | 0.3861 | compressed predictions |
+| ESM2 35M cross-attention | 42 | test | 1.0288 | 0.4314 | better ranking, weaker MAE |
+| ESM2 150M cross-attention | 42 | test | 0.9047 | 0.5221 | improved MAE and ranking |
+| ESM2 150M cross-attention | 123 | test | 0.8815 | 0.5532 | improvement reproduced |
+| ESM2 650M cross-attention bs4 pilot | 2026 | validation | 0.9277 | 0.4565 | stopped after validation plateau |
+
+The 650M row is a stopped validation pilot and is intentionally not presented as a direct test-set comparison.
+
+![ESM2 backbone scaling comparison](reports/final_reports/figures/backbone_scaling_8M_35M_150M_650M.png)
+
+## Study Design
 
 The project started from sequence-only affinity regression and progressed through:
 
@@ -27,11 +47,9 @@ The project started from sequence-only affinity regression and progressed throug
 9. CDR3 contact residual-correction subset analysis.
 10. Controlled ESM2 backbone scaling from 8M to 35M, 150M, and a stopped 650M pilot.
 
-The central finding is that absolute affinity regression shows systematic prediction compression: low-affinity examples tend to be overpredicted and high-affinity examples tend to be underpredicted. Tail-aware loss and CDR3 contact features provide partial improvements, but simple scalar contact features do not fully solve the compression problem.
+## Engineering Scope
 
-## Why This Project Matters
-
-This project is not just a leaderboard experiment. It demonstrates:
+This repository documents:
 
 - Careful biomedical dataset curation and leakage-aware splitting.
 - Standard CDR extraction rather than fixed-index slicing.
@@ -130,29 +148,10 @@ The final figures and summary CSVs needed to understand the project are included
 
 ## Main Scientific Takeaway
 
-The model did not simply fail; rather, the absolute affinity regression setup exposed a systematic bottleneck. Sequence-only models compressed predictions toward the mean. Tail-aware loss improved prediction spread and tail MAE in some settings, but multi-seed validation showed the gains were not uniformly stable. Contact/interface features were technically feasible and gave small subset gains, but simple contact counts were not enough to solve the core compression issue.
+The model did not simply fail. The experiments exposed a systematic bottleneck: sequence-only models compressed affinity predictions toward the mean. Increasing backbone capacity helped substantially up to ESM2 150M, but the 650M pilot did not show a convincing generalization advantage. Tail-aware loss and contact features offered partial gains, but simple scalar contact features were not sufficient to solve the core compression issue.
 
 This motivates future work on richer structure/contact-aware representations and ranking-based antibody binder prioritization.
 
-## Backbone Scaling Follow-Up
-
-A controlled follow-up tested whether model capacity contributed to prediction compression.
-
-- ESM2 8M could not adequately overfit a fixed 64-sample sanity-check subset.
-- ESM2 35M could overfit the same subset, supporting a capacity / representation bottleneck.
-- ESM2 150M improved completed test evaluation metrics over the 8M cross-attention baseline across the first two available seeds:
-  - seed 42: MAE `0.9047`, Spearman `0.5221`
-  - seed 123: MAE `0.8815`, Spearman `0.5532`
-- An ESM2 650M pilot with batch size 4 improved over an earlier large-batch pilot, but validation Spearman plateaued around `0.45` and later declined. The run was stopped early.
-
-The result is deliberately framed conservatively: scaling to 150M helps, but further scaling to 650M did not provide evidence of better generalization under the current sequence-only setup.
-
-See:
-
-- `reports/final_reports/figures/backbone_scaling_8M_35M_150M_650M.png`
-- `reports/final_reports/esm150M_interim_seed42_seed123_summary.md`
-- `reports/final_reports/esm650M_bs4_stopped_summary.md`
-
 ## Recommended Next Step
 
-The natural continuation is a ranking-based antibody binder prioritization project inspired by AbRank-style task framing. The current project shows why exact calibrated affinity regression is difficult; the next project can ask whether pairwise or listwise ranking better supports candidate prioritization.
+The natural continuation is a ranking-based antibody binder prioritization project inspired by AbRank-style task framing. The next study should test whether pairwise or listwise ranking better supports candidate prioritization while retaining the current leakage-aware benchmark design.
