@@ -25,6 +25,7 @@ The project started from sequence-only affinity regression and progressed throug
 7. Basic interface geometry extraction.
 8. CDR-to-structure mapping validation.
 9. CDR3 contact residual-correction subset analysis.
+10. Controlled ESM2 backbone scaling from 8M to 35M, 150M, and a stopped 650M pilot.
 
 The central finding is that absolute affinity regression shows systematic prediction compression: low-affinity examples tend to be overpredicted and high-affinity examples tend to be underpredicted. Tail-aware loss and CDR3 contact features provide partial improvements, but simple scalar contact features do not fully solve the compression problem.
 
@@ -45,7 +46,7 @@ This project is not just a leaderboard experiment. It demonstrates:
 ```text
 src/                          Core model, dataset, training, and evaluation code
 scripts/                      Data audit, CDR extraction, evaluation, plotting scripts
-configs/                      Four selected final experiment configs
+configs/                      Selected final experiment configs
 reports/final_reports/        Final English reports
 reports/final_reports/figures/ Presentation-ready figures
 reports/andd_stratified/      Key ANDD stratified model reports and summary CSVs
@@ -61,6 +62,8 @@ docs/                         GitHub export manifest and script guide
 - `reports/final_reports/final_results_index.md`
 - `reports/andd_stratified/andd_stratified_model_summary.md`
 - `reports/contact_feature_audit/contact_interface_audit_summary.md`
+- `reports/final_reports/esm150M_interim_seed42_seed123_summary.md`
+- `reports/final_reports/esm650M_bs4_stopped_summary.md`
 
 ## Presentation Figures
 
@@ -70,6 +73,7 @@ docs/                         GitHub export manifest and script guide
 - `reports/final_reports/figures/final_fig4_cdr3_contact_augmentation.png`
 - `reports/final_reports/figures/final_fig5_contact_interface_availability_funnel.png`
 - `reports/final_reports/figures/final_fig6_cdr_mapping_validation.png`
+- `reports/final_reports/figures/backbone_scaling_8M_35M_150M_650M.png`
 
 ## Selected Final Configs
 
@@ -79,6 +83,7 @@ The repo keeps only the key final configs, rather than every intermediate sweep 
 - `configs/config_affinity_andd_antibody_v2_stratified_cross_attention_all_cdrs_lr3e-5_e10.yaml`
 - `configs/config_affinity_andd_antibody_v2_stratified_cross_attention_all_cdrs_tailaware_w2_lr3e-5_e20.yaml`
 - `configs/config_affinity_andd_antibody_v2_stratified_cross_attention_all_cdrs_unweighted_s42_lr3e-5_e20.yaml`
+- `configs/config_affinity_andd_antibody_v2_stratified_cross_attention_all_cdrs_esm150M_unweighted_lr1e-5_e50.yaml`
 
 ## Data Availability
 
@@ -128,6 +133,25 @@ The final figures and summary CSVs needed to understand the project are included
 The model did not simply fail; rather, the absolute affinity regression setup exposed a systematic bottleneck. Sequence-only models compressed predictions toward the mean. Tail-aware loss improved prediction spread and tail MAE in some settings, but multi-seed validation showed the gains were not uniformly stable. Contact/interface features were technically feasible and gave small subset gains, but simple contact counts were not enough to solve the core compression issue.
 
 This motivates future work on richer structure/contact-aware representations and ranking-based antibody binder prioritization.
+
+## Backbone Scaling Follow-Up
+
+A controlled follow-up tested whether model capacity contributed to prediction compression.
+
+- ESM2 8M could not adequately overfit a fixed 64-sample sanity-check subset.
+- ESM2 35M could overfit the same subset, supporting a capacity / representation bottleneck.
+- ESM2 150M improved completed test evaluation metrics over the 8M cross-attention baseline across the first two available seeds:
+  - seed 42: MAE `0.9047`, Spearman `0.5221`
+  - seed 123: MAE `0.8815`, Spearman `0.5532`
+- An ESM2 650M pilot with batch size 4 improved over an earlier large-batch pilot, but validation Spearman plateaued around `0.45` and later declined. The run was stopped early.
+
+The result is deliberately framed conservatively: scaling to 150M helps, but further scaling to 650M did not provide evidence of better generalization under the current sequence-only setup.
+
+See:
+
+- `reports/final_reports/figures/backbone_scaling_8M_35M_150M_650M.png`
+- `reports/final_reports/esm150M_interim_seed42_seed123_summary.md`
+- `reports/final_reports/esm650M_bs4_stopped_summary.md`
 
 ## Recommended Next Step
 

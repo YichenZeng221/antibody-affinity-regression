@@ -1,0 +1,57 @@
+# ANDD antibody v2 stratified split: ESM2 150M all-CDR cross-attention ablation.
+# Controlled change vs 8M/35M baseline: model_name only. Plain MSE, no tail-aware weighting.
+
+model_name: facebook/esm2_t30_150M_UR50D
+task_type: affinity_cross_attention_regression_unweighted
+target_column: neg_log10_affinity_candidate
+input_mode: all_cdrs_cross_attention_antigen
+mode_name: andd_antibody_v2_stratified_cross_attention_all_cdrs_esm150M_unweighted
+
+train_csv: data/processed_affinity/expanded_affinity_antibody_v2_stratified/train.csv
+val_csv: data/processed_affinity/expanded_affinity_antibody_v2_stratified/val.csv
+test_csv: data/processed_affinity/expanded_affinity_antibody_v2_stratified/test.csv
+
+output_dir: outputs/andd_antibody_v2_stratified/cross_attention_all_cdrs_esm150M_unweighted
+training_history_path: outputs/andd_antibody_v2_stratified/cross_attention_all_cdrs_esm150M_unweighted/training_history.csv
+predictions_path: outputs/andd_antibody_v2_stratified/cross_attention_all_cdrs_esm150M_unweighted/test_predictions_best_val_tail_mae.csv
+report_path: outputs/andd_antibody_v2_stratified/cross_attention_all_cdrs_esm150M_unweighted/esm150M_cross_attention_report.md
+
+checkpoint_paths:
+  best_val_mae: outputs/andd_antibody_v2_stratified/cross_attention_all_cdrs_esm150M_unweighted/checkpoints/best_val_mae.pt
+  best_val_spearman: outputs/andd_antibody_v2_stratified/cross_attention_all_cdrs_esm150M_unweighted/checkpoints/best_val_spearman.pt
+  best_val_spread: outputs/andd_antibody_v2_stratified/cross_attention_all_cdrs_esm150M_unweighted/checkpoints/best_val_pred_std_ratio.pt
+  best_val_tail_mae: outputs/andd_antibody_v2_stratified/cross_attention_all_cdrs_esm150M_unweighted/checkpoints/best_val_tail_mae.pt
+
+evaluation_checkpoint_policy: best_val_tail_mae
+
+cdr_max_length: 64
+antigen_max_length: 512
+batch_size: 1
+learning_rate: 0.00001
+weight_decay: 0.0
+epochs: 50
+seed: 42
+device: mps_if_available
+
+lora_r: 8
+lora_alpha: 16
+lora_dropout: 0.1
+num_attention_heads: 4
+dropout: 0.1
+
+baseline_8m_reference:
+  mae: 0.9523
+  rmse: 1.3008
+  spearman: 0.3861
+  pred_std_over_true_std: 0.3925
+  error_vs_true_pearson: -0.9202
+  below_train_p10_mae: 2.0273
+  above_train_p90_mae: 1.8483
+  tail_mae: 1.9378
+
+baseline_35m_reference:
+  mae: 1.0288
+  spearman: 0.4314
+  pred_std_over_true_std: 0.7050
+  residual_trend: -0.7286
+  tail_mae: 1.7393
