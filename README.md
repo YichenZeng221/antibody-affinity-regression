@@ -26,9 +26,10 @@ Higher values mean stronger binding.
 | ESM2 35M cross-attention | 42 | test | 1.0288 | 0.4314 | better ranking, weaker MAE |
 | ESM2 150M cross-attention | 42 | test | 0.9047 | 0.5221 | improved MAE and ranking |
 | ESM2 150M cross-attention | 123 | test | 0.8815 | 0.5532 | improvement reproduced |
+| ESM2 650M cross-attention bs14 pilot | 2026 | validation | 0.9899 | 0.4501 | plateaued around epoch 20 |
 | ESM2 650M cross-attention bs4 pilot | 2026 | validation | 0.9277 | 0.4565 | stopped after validation plateau |
 
-The 650M row is a stopped validation pilot and is intentionally not presented as a direct test-set comparison.
+The 650M rows are validation pilots and are intentionally not presented as direct test-set comparisons. The bs14 pilot motivated a smaller-batch bs4 follow-up with more optimization steps per epoch.
 
 ![ESM2 backbone scaling comparison](reports/final_reports/figures/backbone_scaling_8M_35M_150M_650M.png)
 
@@ -65,7 +66,7 @@ This repository documents:
 src/                          Core model, dataset, training, and evaluation code
 scripts/                      Data audit, CDR extraction, evaluation, plotting scripts
 configs/                      Selected final experiment configs
-reports/final_reports/        Final English reports
+reports/final_reports/        Research reports and experiment summaries
 reports/final_reports/figures/ Presentation-ready figures
 reports/andd_stratified/      Key ANDD stratified model reports and summary CSVs
 reports/contact_feature_audit/ Contact/interface audit reports and lightweight feature CSVs
@@ -81,6 +82,7 @@ docs/                         GitHub export manifest and script guide
 - `reports/andd_stratified/andd_stratified_model_summary.md`
 - `reports/contact_feature_audit/contact_interface_audit_summary.md`
 - `reports/final_reports/esm150M_interim_seed42_seed123_summary.md`
+- `reports/final_reports/esm650M_bs14_e25_summary.md`
 - `reports/final_reports/esm650M_bs4_stopped_summary.md`
 
 ## Presentation Figures
